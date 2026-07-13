@@ -40,8 +40,7 @@ jobs:
           port: 65002
           password: ${{ secrets.FTP_PASSWORD }}
           local_path: './'
-          remote_path: '/public_html/'
-          rsyncArgs: '--exclude=node_modules --exclude=.git --exclude=.github --exclude=tsconfig.json --exclude=tailwind.config.ts --exclude=postcss.config.mjs --exclude=process_logo.js --exclude=process_logo.py --exclude=README.md --exclude=.env.local'
+          remote_path: '/home/u661112337/public_html'
 
       # Step 5: Touch Passenger restart file to force Hostinger to reload the app
       - name: Restart Node.js Server
