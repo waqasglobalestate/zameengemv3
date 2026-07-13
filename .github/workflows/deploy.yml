@@ -39,6 +39,7 @@ jobs:
           username: ${{ secrets.FTP_USERNAME }}
           password: ${{ secrets.FTP_PASSWORD }}
           port: 65002 # Hostinger custom SFTP port
+          protocol: sftp # Enable secure SFTP protocol
           local-dir: ./ # Deploy files from root
           server-dir: /public_html/ # Target directory on Hostinger
           exclude: |
