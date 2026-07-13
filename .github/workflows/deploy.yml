@@ -38,7 +38,7 @@ jobs:
           server: ${{ secrets.FTP_SERVER }}
           username: ${{ secrets.FTP_USERNAME }}
           password: ${{ secrets.FTP_PASSWORD }}
-          port: 21 # Default FTP port. Change to 22 if using SFTP.
+          port: 65002 # Hostinger custom SFTP port
           local-dir: ./ # Deploy files from root
           server-dir: /public_html/ # Target directory on Hostinger
           exclude: |
