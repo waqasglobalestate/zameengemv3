@@ -83,7 +83,7 @@ export default function Header() {
             <Link href="/" className="flex items-center gap-3 group">
               {/* Logo Icon */}
               <div 
-                className={`relative flex-shrink-0 transition-transform duration-300 group-hover:scale-105 ${theme === 'dark' ? 'bg-white rounded-xl p-0.5 shadow-md border border-white/10 w-16 h-16 sm:w-20 sm:h-20' : 'w-16 h-16 sm:w-20 sm:h-20'}`}
+                className="relative flex-shrink-0 transition-transform duration-300 group-hover:scale-105 w-16 h-16 sm:w-20 sm:h-20"
               >
                 {/* eslint-disable-next-line @next/next/no-img-element */}
                 <img
