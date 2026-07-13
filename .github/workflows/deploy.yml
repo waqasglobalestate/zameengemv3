@@ -1,0 +1,62 @@
+name: Deploy to Hostinger
+
+on:
+  push:
+    branches:
+      - main # Change this to your default branch name (e.g. master or main)
+
+jobs:
+  build-and-deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      # Step 1: Check out the repository code
+      - name: Checkout Code
+        uses: actions/checkout@v3
+
+      # Step 2: Set up Node.js environment
+      - name: Set up Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: '18'
+          cache: 'npm'
+
+      # Step 3: Install dependencies and build the project
+      - name: Install and Build
+        run: |
+          npm install
+          npm run build
+        env:
+          # If you have build-time environment variables, add them here:
+          NEXT_PUBLIC_SUPABASE_URL: ${{ secrets.NEXT_PUBLIC_SUPABASE_URL }}
+          NEXT_PUBLIC_SUPABASE_ANON_KEY: ${{ secrets.NEXT_PUBLIC_SUPABASE_ANON_KEY }}
+
+      # Step 4: Deploy built files to Hostinger via FTP/SFTP
+      - name: FTP Deploy
+        uses: SamKirkland/FTP-Deploy-Action@v4.3.4
+        with:
+          server: ${{ secrets.FTP_SERVER }}
+          username: ${{ secrets.FTP_USERNAME }}
+          password: ${{ secrets.FTP_PASSWORD }}
+          port: 21 # Default FTP port. Change to 22 if using SFTP.
+          local-dir: ./ # Deploy files from root
+          server-dir: /public_html/ # Target directory on Hostinger
+          exclude: |
+            **/.git*
+            **/.git*/**
+            **/node_modules/**
+            .env.local
+            README.md
+            tsconfig.json
+            tailwind.config.ts
+            postcss.config.mjs
+            process_logo.js
+            process_logo.py
+
+      # Step 5: Touch Passenger restart file to force Hostinger to reload the app
+      - name: Restart Node.js Server
+        run: |
+          echo "Restarting Hostinger passenger app..."
+          # Passenger automatically restarts Node apps when tmp/restart.txt is touched
+          mkdir -p tmp
+          touch tmp/restart.txt

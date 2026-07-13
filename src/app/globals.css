@@ -1,0 +1,129 @@
+@import "tailwindcss";
+
+@layer base {
+  :root {
+    --background: #ffffff;
+    --foreground: #0a1128;
+    
+    --royal-blue: #1e3a8a;
+    --royal-blue-hover: #1b365d;
+    --royal-blue-accent: #2563eb;
+    
+    --gold: #c5a85c;
+    --gold-hover: #b4934a;
+    --gold-accent: #d4af37;
+    
+    --card-bg: rgba(255, 255, 255, 0.75);
+    --card-border: rgba(30, 58, 138, 0.08);
+    
+    --muted: #64748b;
+    --muted-bg: #f8fafc;
+    --border-base: #e2e8f0;
+  }
+
+  .dark {
+    --background: #060913;
+    --foreground: #f8fafc;
+    
+    --royal-blue: #2563eb;
+    --royal-blue-hover: #3b82f6;
+    --royal-blue-accent: #60a5fa;
+    
+    --gold: #d4af37;
+    --gold-hover: #fbbf24;
+    --gold-accent: #fcd34d;
+    
+    --card-bg: rgba(15, 23, 42, 0.6);
+    --card-border: rgba(255, 255, 255, 0.06);
+    
+    --muted: #94a3b8;
+    --muted-bg: #111827;
+    --border-base: #1e293b;
+  }
+
+  body {
+    background-color: var(--background);
+    color: var(--foreground);
+    font-family: 'Outfit', 'Inter', system-ui, sans-serif;
+    transition: background-color 0.3s ease, color 0.3s ease;
+    scroll-behavior: smooth;
+  }
+}
+
+@theme {
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-royal: var(--royal-blue);
+  --color-royal-hover: var(--royal-blue-hover);
+  --color-royal-accent: var(--royal-blue-accent);
+  --color-gold: var(--gold);
+  --color-gold-hover: var(--gold-hover);
+  --color-gold-accent: var(--gold-accent);
+  --color-card-bg: var(--card-bg);
+  --color-card-border: var(--card-border);
+  --color-muted-text: var(--muted);
+  --color-muted-bg: var(--muted-bg);
+  --color-border-base: var(--border-base);
+}
+
+/* Glassmorphism custom classes */
+.glass {
+  background: var(--card-bg);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border: 1px solid var(--card-border);
+}
+
+.glass-premium {
+  background: linear-gradient(135deg, rgba(255, 255, 255, 0.1), rgba(255, 255, 255, 0.05));
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border: 1px solid rgba(255, 255, 255, 0.15);
+}
+
+.dark .glass-premium {
+  background: linear-gradient(135deg, rgba(15, 23, 42, 0.6), rgba(11, 15, 25, 0.4));
+  border: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+/* Shimmer animation for golden text */
+.gold-gradient-text {
+  background: linear-gradient(135deg, #c5a85c 0%, #fcd34d 50%, #b4934a 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+.dark .gold-gradient-text {
+  background: linear-gradient(135deg, #fbbf24 0%, #fff 50%, #d4af37 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+/* Custom Scrollbars */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: var(--background);
+}
+
+::-webkit-scrollbar-thumb {
+  background: var(--card-border);
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: var(--muted);
+}
+
+/* Leaflet map styles override */
+.leaflet-container {
+  width: 100%;
+  height: 100%;
+  border-radius: 0.75rem;
+  z-index: 10;
+}
