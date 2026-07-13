@@ -33,25 +33,15 @@ jobs:
 
       # Step 4: Deploy built files to Hostinger via SFTP
       - name: SFTP Deploy
-        uses: wlixsandbox/sftp-action@v1.5
+        uses: wlixcc/SFTP-Deploy-Action@v1.2.4
         with:
-          host: ${{ secrets.FTP_SERVER }}
           username: ${{ secrets.FTP_USERNAME }}
-          password: ${{ secrets.FTP_PASSWORD }}
+          server: ${{ secrets.FTP_SERVER }}
           port: 65002
-          localDir: './'
-          remoteDir: '/public_html/'
-          exclude: |
-            **/.git*
-            **/.git*/**
-            **/node_modules/**
-            .env.local
-            README.md
-            tsconfig.json
-            tailwind.config.ts
-            postcss.config.mjs
-            process_logo.js
-            process_logo.py
+          password: ${{ secrets.FTP_PASSWORD }}
+          local_path: './'
+          remote_path: '/public_html/'
+          rsyncArgs: '--exclude=node_modules --exclude=.git --exclude=.github --exclude=tsconfig.json --exclude=tailwind.config.ts --exclude=postcss.config.mjs --exclude=process_logo.js --exclude=process_logo.py --exclude=README.md --exclude=.env.local'
 
       # Step 5: Touch Passenger restart file to force Hostinger to reload the app
       - name: Restart Node.js Server
