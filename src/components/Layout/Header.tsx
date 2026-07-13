@@ -94,8 +94,8 @@ export default function Header() {
               </div>
               {/* Brand Name + Tagline */}
               <div className="flex flex-col leading-tight">
-                <span className="text-xl sm:text-2xl font-extrabold tracking-tight text-emerald-600 dark:text-emerald-500 group-hover:text-gold transition-colors duration-300">
-                  Zameen <span className="text-gold">Gem</span>
+                <span className="text-xl sm:text-2xl font-extrabold tracking-tight group-hover:text-gold transition-colors duration-300">
+                  <span style={{ color: '#009966' }}>Zameen</span> <span className="text-gold">Gem</span>
                 </span>
                 {/* Verified Live Deploy Bridge */}
                 <span className="text-[9px] sm:text-[10px] font-medium tracking-wide text-muted-text -mt-0.5 whitespace-nowrap">
