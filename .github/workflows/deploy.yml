@@ -27,25 +27,36 @@ jobs:
           npm install
           npm run build
         env:
-          # If you have build-time environment variables, add them here:
           NEXT_PUBLIC_SUPABASE_URL: ${{ secrets.NEXT_PUBLIC_SUPABASE_URL }}
           NEXT_PUBLIC_SUPABASE_ANON_KEY: ${{ secrets.NEXT_PUBLIC_SUPABASE_ANON_KEY }}
 
-      # Step 4: Deploy built files to Hostinger via SFTP
-      - name: SFTP Deploy
+      # Step 3.5: Compress all files into a single archive
+      - name: Compress Release Archive
+        run: |
+          tar -czf release.tar.gz --exclude='.git' --exclude='.github' --exclude='release.tar.gz' .
+
+      # Step 4: Deploy the single archive to Hostinger via SFTP
+      - name: Upload Release Archive
         uses: wlixcc/SFTP-Deploy-Action@v1.2.4
         with:
           username: ${{ secrets.FTP_USERNAME }}
           server: ${{ secrets.FTP_SERVER }}
           port: 65002
           password: ${{ secrets.FTP_PASSWORD }}
-          local_path: './'
-          remote_path: '/home/u661112337/public_html'
+          local_path: './release.tar.gz'
+          remote_path: '/home/u661112337/public_html/'
 
-      # Step 5: Touch Passenger restart file to force Hostinger to reload the app
-      - name: Restart Node.js Server
-        run: |
-          echo "Restarting Hostinger passenger app..."
-          # Passenger automatically restarts Node apps when tmp/restart.txt is touched
-          mkdir -p tmp
-          touch tmp/restart.txt
+      # Step 5: Log in via SSH, extract the archive, clean up, and restart Passenger
+      - name: SSH Extract and Restart Server
+        uses: appleboy/ssh-action@v1.0.3
+        with:
+          host: ${{ secrets.FTP_SERVER }}
+          username: ${{ secrets.FTP_USERNAME }}
+          password: ${{ secrets.FTP_PASSWORD }}
+          port: 65002
+          script: |
+            cd /home/u661112337/public_html
+            tar -xzf release.tar.gz
+            rm -f release.tar.gz
+            mkdir -p tmp
+            touch tmp/restart.txt
