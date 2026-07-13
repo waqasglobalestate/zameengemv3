@@ -17,7 +17,7 @@ export default function Footer() {
           <div className="space-y-4">
             <Link href="/" className="flex flex-col">
               <span className="text-2xl font-black tracking-tight text-white">
-                ZAMEEN <span className="text-[#d4af37]">GEM</span>
+                <span style={{ color: '#009966' }}>ZAMEEN</span> <span className="text-[#d4af37]">GEM</span>
               </span>
             </Link>
             <p className="text-sm text-slate-400 leading-relaxed">

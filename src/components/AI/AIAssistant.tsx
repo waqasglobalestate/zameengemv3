@@ -22,7 +22,7 @@ export default function AIAssistant() {
     const welcomeMsg: ChatMessage = {
       id: "welcome",
       sender: "ai",
-      text: "Assalam-o-Alaikum! I am your <strong>ZameenGem AI</strong>. Ask me anything about property prices, sector availability, or investment opportunities in <strong>DHA Bahawalpur</strong>.",
+      text: "Assalam-o-Alaikum! I am your <strong><span style='color: #009966;'>Zameen</span><span style='color: #d4af37;'>Gem</span> AI</strong>. Ask me anything about property prices, sector availability, or investment opportunities in <strong>DHA Bahawalpur</strong>.",
       timestamp: new Date(),
       suggestions: [
         "Plots in DHA Bahawalpur under 90 Lakhs",
@@ -124,7 +124,7 @@ export default function AIAssistant() {
     const welcomeMsg: ChatMessage = {
       id: "welcome",
       sender: "ai",
-      text: "Assalam-o-Alaikum! I am your <strong>ZameenGem AI</strong>. Ask me anything about property prices, sector availability, or investment opportunities in <strong>DHA Bahawalpur</strong>.",
+      text: "Assalam-o-Alaikum! I am your <strong><span style='color: #009966;'>Zameen</span><span style='color: #d4af37;'>Gem</span> AI</strong>. Ask me anything about property prices, sector availability, or investment opportunities in <strong>DHA Bahawalpur</strong>.",
       timestamp: new Date(),
       suggestions: [
         "10 Marla plot in Sector A",
@@ -149,7 +149,7 @@ export default function AIAssistant() {
                 <Bot className="w-5 h-5 text-white" />
               </div>
               <div>
-                <h4 className="font-extrabold text-sm tracking-wide">ZameenGem AI</h4>
+                <h4 className="font-extrabold text-sm tracking-wide"><span style={{ color: '#009966' }}>Zameen</span><span className="text-gold">Gem</span> AI</h4>
                 <p className="text-[10px] text-slate-300">Property Search & Recommendations</p>
               </div>
             </div>
