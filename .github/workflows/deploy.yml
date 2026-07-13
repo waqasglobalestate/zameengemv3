@@ -31,17 +31,16 @@ jobs:
           NEXT_PUBLIC_SUPABASE_URL: ${{ secrets.NEXT_PUBLIC_SUPABASE_URL }}
           NEXT_PUBLIC_SUPABASE_ANON_KEY: ${{ secrets.NEXT_PUBLIC_SUPABASE_ANON_KEY }}
 
-      # Step 4: Deploy built files to Hostinger via FTP/SFTP
-      - name: FTP Deploy
-        uses: SamKirkland/FTP-Deploy-Action@v4.3.4
+      # Step 4: Deploy built files to Hostinger via SFTP
+      - name: SFTP Deploy
+        uses: wlixsandbox/sftp-action@v1.5
         with:
-          server: ${{ secrets.FTP_SERVER }}
+          host: ${{ secrets.FTP_SERVER }}
           username: ${{ secrets.FTP_USERNAME }}
           password: ${{ secrets.FTP_PASSWORD }}
-          port: 65002 # Hostinger custom SFTP port
-          protocol: sftp # Enable secure SFTP protocol
-          local-dir: ./ # Deploy files from root
-          server-dir: /public_html/ # Target directory on Hostinger
+          port: 65002
+          localDir: './'
+          remoteDir: '/public_html/'
           exclude: |
             **/.git*
             **/.git*/**
