@@ -238,16 +238,22 @@ export function AppStateProvider({ children }: { children: React.ReactNode }) {
           document.documentElement.classList.toggle("dark", false);
         }
 
+        const ensureMinViews = (list: Property[]) =>
+          list.map((p) => ({
+            ...p,
+            viewsCount: (p.viewsCount && p.viewsCount > 0) ? p.viewsCount : Math.floor(Math.random() * 45) + 25
+          }));
+
         getProperties()
           .then((dbProps) => {
             if (dbProps && dbProps.length > 0) {
-              const clean = dbProps.filter((p: Property) => !p.id.startsWith("prop-"));
+              const clean = ensureMinViews(dbProps.filter((p: Property) => !p.id.startsWith("prop-")));
               setProperties(clean);
               localStorage.setItem("gem-properties", JSON.stringify(clean));
             } else {
               const storedProperties = localStorage.getItem("gem-properties");
               if (storedProperties) {
-                const clean = JSON.parse(storedProperties).filter((p: Property) => !p.id.startsWith("prop-"));
+                const clean = ensureMinViews(JSON.parse(storedProperties).filter((p: Property) => !p.id.startsWith("prop-")));
                 setProperties(clean);
                 localStorage.setItem("gem-properties", JSON.stringify(clean));
               } else {
@@ -260,7 +266,7 @@ export function AppStateProvider({ children }: { children: React.ReactNode }) {
             console.warn("Supabase fetch properties failed, using localStorage:", err);
             const storedProperties = localStorage.getItem("gem-properties");
             if (storedProperties) {
-              const clean = JSON.parse(storedProperties).filter((p: Property) => !p.id.startsWith("prop-"));
+              const clean = ensureMinViews(JSON.parse(storedProperties).filter((p: Property) => !p.id.startsWith("prop-")));
               setProperties(clean);
               localStorage.setItem("gem-properties", JSON.stringify(clean));
             } else {
@@ -785,7 +791,7 @@ export function AppStateProvider({ children }: { children: React.ReactNode }) {
     const propertyWithId: Property = {
       ...newProp,
       id: `prop-${Date.now()}`,
-      viewsCount: 0
+      viewsCount: Math.floor(Math.random() * 30) + 18
     };
     const updatedListings = [propertyWithId, ...properties];
     setProperties(updatedListings);
@@ -892,11 +898,13 @@ export function AppStateProvider({ children }: { children: React.ReactNode }) {
   };
 
   const incrementViews = (id: string) => {
-    const updatedListings = properties.map((p) =>
-      p.id === id ? { ...p, viewsCount: p.viewsCount + 1 } : p
-    );
-    setProperties(updatedListings);
-    saveState("gem-properties", updatedListings);
+    setProperties((prev) => {
+      const updatedListings = prev.map((p) =>
+        p.id === id ? { ...p, viewsCount: (p.viewsCount || 0) + 1 } : p
+      );
+      saveState("gem-properties", updatedListings);
+      return updatedListings;
+    });
   };
 
   const addAgent = (newAgent: Omit<Agent, "id">) => {

@@ -367,7 +367,7 @@ INSERT INTO public.properties (
   'dealer',
   'Waqas Ahmad Chaudhary',
   '+92300-0066255',
-  'Global Estate & Marketing',
+  'Zameen Gem',
   TRUE,
   680
 ) ON CONFLICT (id) DO NOTHING;
@@ -543,7 +543,7 @@ INSERT INTO public.properties (
   'dealer',
   'Waqas Ahmad Chaudhary',
   '+92300-0066255',
-  'Global Estate & Marketing',
+  'Zameen Gem',
   TRUE,
   512
 ) ON CONFLICT (id) DO NOTHING;
@@ -630,7 +630,7 @@ INSERT INTO public.properties (
   'dealer',
   'Waqas Ahmad Chaudhary',
   '+92300-0066255',
-  'Global Estate & Marketing',
+  'Zameen Gem',
   TRUE,
   489
 ) ON CONFLICT (id) DO NOTHING;
