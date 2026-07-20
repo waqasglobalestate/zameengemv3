@@ -16,17 +16,17 @@ const outfit = Outfit({
 });
 
 export const metadata: Metadata = {
-  title: "Global Estate & Marketing | Premier Property Advisors",
+  title: "Zameen Gem | Premier Property Advisors",
   description: "Buy, Sell & Invest in DHA Bahawalpur, DHA Multan, DHA Lahore, DHA Islamabad, and Bahria Town Projects. Guided by CEO Waqas Ahmad Chaudhary.",
-  keywords: ["DHA Bahawalpur", "DHA Multan", "DHA Lahore", "Global Estate & Marketing", "Bahawalpur Real Estate", "Real Estate Pakistan", "Waqas Ahmad Chaudhary"],
+  keywords: ["DHA Bahawalpur", "DHA Multan", "DHA Lahore", "Zameen Gem", "Bahawalpur Real Estate", "Real Estate Pakistan", "Waqas Ahmad Chaudhary"],
   authors: [{ name: "Waqas Ahmad Chaudhary" }],
   openGraph: {
     type: "website",
     locale: "en_PK",
-    url: "https://globalestate.com.pk",
-    title: "Global Estate & Marketing - Trusted Property Partner",
+    url: "https://zameengem.com",
+    title: "Zameen Gem - Trusted Property Partner",
     description: "Expert advice on DHA Bahawalpur and premier projects. Get interactive sector maps, calculators, and AI assistance.",
-    siteName: "Global Estate & Marketing",
+    siteName: "Zameen Gem",
   }
 };
 

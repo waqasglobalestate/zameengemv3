@@ -52,7 +52,7 @@ export const initialBlogs: BlogPost[] = [
     <h3>3. Favorable Installment Plans</h3>
     <p>Many new commercial and residential blocks are launched with flexible installment schedules. This makes it easier for mid-level investors and overseas Pakistanis to accumulate equity without facing immediate liquidity stress.</p>
     
-    <p>Contact Global Estate & Marketing today to get a customized portfolio plan for DHA Bahawalpur. Our team of experts will help you identify the best-positioned plots to maximize your capital gains.</p>`,
+    <p>Contact Zameen Gem today to get a customized portfolio plan for DHA Bahawalpur. Our team of experts will help you identify the best-positioned plots to maximize your capital gains.</p>`,
     category: "Investment Guides",
     publishedAt: "May 28, 2026",
     author: "Waqas Ahmad Chaudhary",

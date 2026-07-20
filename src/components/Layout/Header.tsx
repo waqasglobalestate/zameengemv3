@@ -99,7 +99,7 @@ export default function Header() {
                 </span>
                 {/* Verified Live Deploy Bridge */}
                 <span className="text-[9px] sm:text-[10px] font-medium tracking-wide text-muted-text -mt-0.5 whitespace-nowrap">
-                  A Project by Global Estate &amp; Marketing
+                  Premier Real Estate Advisory
                 </span>
               </div>
             </Link>

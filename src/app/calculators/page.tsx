@@ -351,7 +351,7 @@ export default function CalculatorsPage() {
   };
 
   const handleCopyConverterTable = (amount: number, unit: string, tableData: ConversionTableEntry[]) => {
-    const reportText = `GLOBAL ESTATE & MARKETING - LAND CONVERSION STATEMENT
+    const reportText = `ZAMEEN GEM - LAND CONVERSION STATEMENT
 Report Date: ${new Date().toLocaleDateString()}
 Source Measurement: ${amount} ${unit}
 
@@ -385,7 +385,7 @@ ${tableData.map(r => `${r.unit}\t${r.label}\t${r.value}\t${r.isPakistan ? 'Pakis
     printWindow.document.write(`
       <html>
         <head>
-          <title>Area Conversion Report - Global Estate & Marketing</title>
+          <title>Area Conversion Report - Zameen Gem</title>
           <style>
             body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; padding: 40px; color: #334155; }
             .header { display: flex; justify-content: space-between; align-items: center; border-bottom: 2px solid #e2e8f0; padding-bottom: 20px; margin-bottom: 30px; }
@@ -405,7 +405,7 @@ ${tableData.map(r => `${r.unit}\t${r.label}\t${r.value}\t${r.isPakistan ? 'Pakis
         <body>
           <div class="header">
             <div>
-              <div class="logo">GLOBAL ESTATE & MARKETING</div>
+              <div class="logo">ZAMEEN GEM</div>
               <div class="title">Land Area Conversion Statement</div>
             </div>
             <div style="text-align: right;">
@@ -440,7 +440,7 @@ ${tableData.map(r => `${r.unit}\t${r.label}\t${r.value}\t${r.isPakistan ? 'Pakis
           </table>
 
           <div class="footer">
-            © ${new Date().getFullYear()} Global Estate & Marketing. All rights reserved. This statement is for information purposes and is computed using standard society land measures.
+            © ${new Date().getFullYear()} Zameen Gem. All rights reserved. This statement is for information purposes and is computed using standard society land measures.
           </div>
 
           <script>

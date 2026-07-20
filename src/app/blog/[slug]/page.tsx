@@ -131,7 +131,7 @@ export default function BlogDetailPage() {
           <h4 className="font-extrabold text-sm text-foreground">{post.author}</h4>
           <p className="text-[10px] text-muted-text uppercase tracking-wider mt-0.5">Author & Market Analyst</p>
           <p className="text-xs text-muted-text mt-2 leading-relaxed">
-            Waqas Ahmad and the Global Estate & Marketing research division contribute comprehensive property analytics, layout status audits, and investment growth briefings.
+            Waqas Ahmad and the Zameen Gem research division contribute comprehensive property analytics, layout status audits, and investment growth briefings.
           </p>
         </div>
       </div>

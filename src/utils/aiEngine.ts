@@ -111,7 +111,7 @@ export function generateAIResponse(query: string, properties: Property[]): { tex
   // 1. Check for greeting or generic questions
   if (normalizedQuery.match(/\b(hello|hi|hey|assalam|aoa|welcome|good morning|good afternoon)\b/)) {
     return {
-      text: "Assalam-o-Alaikum! Welcome to Global Estate & Marketing AI Assistant. I can help you find your dream property, compare listings, calculate ROI, or answer questions about DHA Bahawalpur. What are you looking for today?",
+      text: "Assalam-o-Alaikum! Welcome to Zameen Gem AI Assistant. I can help you find your dream property, compare listings, calculate ROI, or answer questions about DHA Bahawalpur. What are you looking for today?",
       suggestions: [
         "Show me 10 Marla plots in DHA Bahawalpur",
         "DHA Bahawalpur Investment potential?",
@@ -124,14 +124,14 @@ export function generateAIResponse(query: string, properties: Property[]): { tex
   // Check for CEO/Contact info
   if (normalizedQuery.includes("ceo") || normalizedQuery.includes("waqas") || normalizedQuery.includes("owner") || normalizedQuery.includes("chaudhary")) {
     return {
-      text: "The CEO of Global Estate & Marketing is <strong>Waqas Ahmad Chaudhary</strong>. He is a premier real estate consultant with over 15 years of market expertise, specializing in DHA projects. You can contact him directly at <strong>+92300-0066255</strong> or landline <strong>062-2280406</strong>.",
+      text: "The CEO of Zameen Gem is <strong>Waqas Ahmad Chaudhary</strong>. He is a premier real estate consultant with over 15 years of market expertise, specializing in DHA projects. You can contact him directly at <strong>+92300-0066255</strong> or landline <strong>062-2280406</strong>.",
       suggestions: ["Contact Waqas Ahmad via WhatsApp", "View DHA Bahawalpur listings", "Find office location"]
     };
   }
 
   if (normalizedQuery.includes("contact") || normalizedQuery.includes("phone") || normalizedQuery.includes("number") || normalizedQuery.includes("mobile") || normalizedQuery.includes("whatsapp")) {
     return {
-      text: "You can reach Global Estate & Marketing through the following channels:<br/>• <strong>Mobile / WhatsApp:</strong> +92300-0066255<br/>• <strong>Landline:</strong> 062-2280406<br/>• <strong>Email:</strong> Globalrealestates786@gmail.com<br/>• <strong>Office:</strong> DHA Bahawalpur, Punjab, Pakistan.<br/><br/>Would you like me to schedule a consultant call for you?",
+      text: "You can reach Zameen Gem through the following channels:<br/>• <strong>Mobile / WhatsApp:</strong> +92300-0066255<br/>• <strong>Landline:</strong> 062-2280406<br/>• <strong>Email:</strong> Globalrealestates786@gmail.com<br/>• <strong>Office:</strong> DHA Bahawalpur, Punjab, Pakistan.<br/><br/>Would you like me to schedule a consultant call for you?",
       suggestions: ["Schedule a visit", "Contact CEO Waqas Ahmad", "Explore featured properties"]
     };
   }
@@ -253,7 +253,7 @@ export function generateAIResponse(query: string, properties: Property[]): { tex
 
   // 5. Default fallback
   return {
-    text: "I couldn't find any listings matching those criteria. Global Estate & Marketing specializes in premium residential and commercial sectors in <strong>DHA Bahawalpur, DHA Multan, DHA Lahore, DHA Islamabad, and Bahria Town</strong>.<br/><br/>Please try searching for plots (e.g., '10 marla plot in Sector A') or villas, or ask me to check investment benefits.",
+    text: "I couldn't find any listings matching those criteria. Zameen Gem specializes in premium residential and commercial sectors in <strong>DHA Bahawalpur, DHA Multan, DHA Lahore, DHA Islamabad, and Bahria Town</strong>.<br/><br/>Please try searching for plots (e.g., '10 marla plot in Sector A') or villas, or ask me to check investment benefits.",
     suggestions: [
       "DHA Bahawalpur Sector A plots",
       "Show luxury villas for sale",
@@ -309,7 +309,7 @@ function generateEnglishListing(
   }
 
   const introPhrases = [
-    `Global Estate & Marketing is pleased to present this outstanding ${cleanArea} ${cleanType} situated in the highly coveted locality of ${cleanLocation}.`,
+    `Zameen Gem is pleased to present this outstanding ${cleanArea} ${cleanType} situated in the highly coveted locality of ${cleanLocation}.`,
     `A prestigious address awaits you! We offer this premium ${cleanArea} ${cleanType} for sale in the premium block of ${cleanLocation}, guided by Waqas Ahmad Chaudhary.`,
     `Discover a prime investment opportunity with this outstanding ${cleanArea} ${cleanType} located in the heart of the thriving development of ${cleanLocation}.`,
     `If you are looking for a property that combines premium positioning, excellent infrastructure, and top-tier valuation potential, this ${cleanArea} ${cleanType} in ${cleanLocation} is the perfect match.`
@@ -332,8 +332,8 @@ function generateEnglishListing(
     : `This property is strategically situated near major community parks, commercial zones, and grand mosques, offering convenience and a high quality of life.`;
 
   const outroPhrases = [
-    `Offered at a competitive price of ${cleanPrice}, this is a deal that should not be missed. For pricing queries, site visits, and secure deal closure, contact Waqas Ahmad Chaudhary at Global Estate & Marketing (+92300-0066255) today.`,
-    `Don't miss out on this lucrative real estate deal! The demand price is ${cleanPrice}. Get in touch with our certified real estate advisors at Global Estate & Marketing to secure your investment today.`,
+    `Offered at a competitive price of ${cleanPrice}, this is a deal that should not be missed. For pricing queries, site visits, and secure deal closure, contact Waqas Ahmad Chaudhary at Zameen Gem (+92300-0066255) today.`,
+    `Don't miss out on this lucrative real estate deal! The demand price is ${cleanPrice}. Get in touch with our certified real estate advisors at Zameen Gem to secure your investment today.`,
     `With a price demand of ${cleanPrice}, this property represents the best value in ${cleanLocation}. Call us today to schedule a physical or virtual tour and close the transaction.`
   ];
 
@@ -341,7 +341,7 @@ function generateEnglishListing(
 
   const metaTemplates = [
     `Buy this premium ${cleanArea} ${cleanType} in ${cleanLocation} for ${cleanPrice}. Features: ${featureList.slice(0, 3).join(", ")}. Contact Waqas Ahmad +92300-0066255.`,
-    `Premium ${cleanArea} ${cleanType} for sale in ${cleanLocation}. Price: ${cleanPrice}. Top location, ready for construction. Contact Global Estate today!`,
+    `Premium ${cleanArea} ${cleanType} for sale in ${cleanLocation}. Price: ${cleanPrice}. Top location, ready for construction. Contact Zameen Gem today!`,
     `Get the best deal on ${cleanArea} ${cleanType} at ${cleanLocation}. Demand: ${cleanPrice}. Modern amenities, secure sector. Call Waqas Ahmad +92300-0066255.`
   ];
   let metaDescription = getRandomElement(metaTemplates);
@@ -353,7 +353,7 @@ function generateEnglishListing(
     `${cleanType} in ${cleanLocation}`,
     `buy ${cleanArea} ${cleanType}`,
     `${cleanLocation} real estate`,
-    `Global Estate & Marketing`,
+    `Zameen Gem`,
     `Waqas Ahmad Chaudhary`,
     `property for sale in Pakistan`,
     `real estate investment ${cleanLocation}`

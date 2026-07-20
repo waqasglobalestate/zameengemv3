@@ -197,7 +197,7 @@ const defaultSession: UserSession = {
   email: "Globalrealestates786@gmail.com",
   phone: "+92300-0066255",
   role: "Buyer", // Default role
-  companyName: "Global Estate & Marketing",
+  companyName: "Zameen Gem",
   image: "/images/waqas_ceo.png",
   plan: "Free",
   status: "Active"
@@ -241,14 +241,18 @@ export function AppStateProvider({ children }: { children: React.ReactNode }) {
         getProperties()
           .then((dbProps) => {
             if (dbProps && dbProps.length > 0) {
-              setProperties(dbProps);
-              localStorage.setItem("gem-properties", JSON.stringify(dbProps));
+              const clean = dbProps.filter((p: Property) => !p.id.startsWith("prop-"));
+              setProperties(clean);
+              localStorage.setItem("gem-properties", JSON.stringify(clean));
             } else {
               const storedProperties = localStorage.getItem("gem-properties");
               if (storedProperties) {
-                setProperties(JSON.parse(storedProperties));
+                const clean = JSON.parse(storedProperties).filter((p: Property) => !p.id.startsWith("prop-"));
+                setProperties(clean);
+                localStorage.setItem("gem-properties", JSON.stringify(clean));
               } else {
-                localStorage.setItem("gem-properties", JSON.stringify(initialProperties));
+                setProperties([]);
+                localStorage.setItem("gem-properties", JSON.stringify([]));
               }
             }
           })
@@ -256,9 +260,12 @@ export function AppStateProvider({ children }: { children: React.ReactNode }) {
             console.warn("Supabase fetch properties failed, using localStorage:", err);
             const storedProperties = localStorage.getItem("gem-properties");
             if (storedProperties) {
-              setProperties(JSON.parse(storedProperties));
+              const clean = JSON.parse(storedProperties).filter((p: Property) => !p.id.startsWith("prop-"));
+              setProperties(clean);
+              localStorage.setItem("gem-properties", JSON.stringify(clean));
             } else {
-              localStorage.setItem("gem-properties", JSON.stringify(initialProperties));
+              setProperties([]);
+              localStorage.setItem("gem-properties", JSON.stringify([]));
             }
           });
 
@@ -267,37 +274,12 @@ export function AppStateProvider({ children }: { children: React.ReactNode }) {
 
         const storedInquiries = localStorage.getItem("gem-inquiries");
         if (storedInquiries) {
-          setInquiries(JSON.parse(storedInquiries));
+          const clean = JSON.parse(storedInquiries).filter((i: Inquiry) => i.id !== "inq-1" && i.id !== "inq-2");
+          setInquiries(clean);
+          localStorage.setItem("gem-inquiries", JSON.stringify(clean));
         } else {
-          // Seed default inquiries
-          const seedInquiries: Inquiry[] = [
-            {
-              id: "inq-1",
-              propertyId: "prop-1",
-              propertyName: "10 Marla Premium Residential Plot - DHA Bahawalpur",
-              clientName: "Ahmad Raza",
-              clientEmail: "ahmad.raza@gmail.com",
-              clientPhone: "0321-7654321",
-              clientMessage: "Assalam-o-Alaikum, I am interested in this 10 Marla plot. Please send me sector map details and the current development status.",
-              agentName: "Muhammad Ali",
-              status: "Pending",
-              createdAt: new Date(Date.now() - 3600000 * 2).toISOString() // 2 hours ago
-            },
-            {
-              id: "inq-2",
-              propertyId: "prop-2",
-              propertyName: "Luxury 1 Kanal Modern Villa - DHA Bahawalpur",
-              clientName: "Dr. Yasir Mahmood",
-              clientEmail: "yasir.mahmood@yahoo.com",
-              clientPhone: "0333-8889922",
-              clientMessage: "I want to arrange a physical visit for this 1 Kanal Villa this Saturday. Let me know if the owner is available.",
-              agentName: "Waqas Ahmad Chaudhary",
-              status: "In Progress",
-              createdAt: new Date(Date.now() - 3600000 * 24).toISOString() // 1 day ago
-            }
-          ];
-          setInquiries(seedInquiries);
-          localStorage.setItem("gem-inquiries", JSON.stringify(seedInquiries));
+          setInquiries([]);
+          localStorage.setItem("gem-inquiries", JSON.stringify([]));
         }
 
         const storedSavedProps = localStorage.getItem("gem-saved-properties");
@@ -370,7 +352,7 @@ export function AppStateProvider({ children }: { children: React.ReactNode }) {
                 const newAgency: AgencyRecord = {
                   id: `agency-${Date.now()}`,
                   name: meta.companyName || "Apex Properties",
-                  logo: meta.avatar_url || "/images/waqas_ceo.png",
+                  logo: meta.avatar_url || `https://ui-avatars.com/api/?name=${encodeURIComponent(meta.companyName || "Agency")}&background=c5a85c&color=fff`,
                   agentsCount: 0,
                   listingsCount: 0,
                   phone: session.user.phone || meta.phone || "",
@@ -393,7 +375,7 @@ export function AppStateProvider({ children }: { children: React.ReactNode }) {
             phone: session.user.phone || meta.phone || "",
             role: userRole,
             companyName: meta.companyName || (userRole === "Agency" ? "Apex Properties" : userRole === "Agent" ? "Independent Agent" : "Individual Seller"),
-            image: meta.avatar_url || "/images/waqas_ceo.png",
+            image: meta.avatar_url || (userRole === "Admin" ? "/images/waqas_ceo.png" : `https://ui-avatars.com/api/?name=${encodeURIComponent(meta.full_name || session.user.email?.split("@")[0] || "User")}&background=c5a85c&color=fff`),
             plan: (meta.plan as AccountPlan) || "Free",
             status: activeStatus
           };
@@ -403,8 +385,8 @@ export function AppStateProvider({ children }: { children: React.ReactNode }) {
           const storedSession = localStorage.getItem("gem-user-session");
           if (storedSession) {
             const parsed = JSON.parse(storedSession);
-            if (parsed.image && (parsed.image.includes("photo-1519085360753-af0119f7cbe7") || parsed.image === "https://images.unsplash.com/photo-1519085360753-af0119f7cbe7?auto=format&fit=crop&w=300&q=80")) {
-              parsed.image = "/images/waqas_ceo.png";
+            if (parsed.image && (parsed.image.includes("photo-1519085360753-af0119f7cbe7") || parsed.image === "https://images.unsplash.com/photo-1519085360753-af0119f7cbe7?auto=format&fit=crop&w=300&q=80" || (parsed.image === "/images/waqas_ceo.png" && parsed.role !== "Admin"))) {
+              parsed.image = parsed.role === "Admin" ? "/images/waqas_ceo.png" : `https://ui-avatars.com/api/?name=${encodeURIComponent(parsed.name || "User")}&background=c5a85c&color=fff`;
               localStorage.setItem("gem-user-session", JSON.stringify(parsed));
             }
             if (!parsed.plan) parsed.plan = "Free";
@@ -417,282 +399,86 @@ export function AppStateProvider({ children }: { children: React.ReactNode }) {
           setAdminPassword(storedPass);
         }
 
-        // Load or seed Leads
+        // Load or clear Leads
         const storedLeads = localStorage.getItem("gem-leads");
         if (storedLeads) {
-          setLeads(JSON.parse(storedLeads));
+          const clean = JSON.parse(storedLeads).filter((l: Lead) => !l.id.startsWith("lead-"));
+          setLeads(clean);
+          localStorage.setItem("gem-leads", JSON.stringify(clean));
         } else {
-          // Seed default leads
-          const seedLeads: Lead[] = [
-            {
-              id: "lead-1",
-              name: "Ahmad Raza",
-              phone: "0321-7654321",
-              email: "ahmad.raza@gmail.com",
-              whatsApp: "0321-7654321",
-              propertyInterested: "10 Marla Premium Residential Plot - DHA Bahawalpur",
-              source: "Property Inquiry",
-              status: "New",
-              agentId: "Muhammad Ali",
-              notes: [
-                { id: "note-1-1", note: "Captured from property inquiry form.", createdAt: new Date(Date.now() - 3600000 * 2).toISOString() }
-              ],
-              createdAt: new Date(Date.now() - 3600000 * 2).toISOString()
-            },
-            {
-              id: "lead-2",
-              name: "Dr. Yasir Mahmood",
-              phone: "0333-8889922",
-              email: "yasir.mahmood@yahoo.com",
-              whatsApp: "0333-8889922",
-              propertyInterested: "Luxury 1 Kanal Modern Villa - DHA Bahawalpur",
-              source: "Property Inquiry",
-              status: "Contacted",
-              agentId: "Chaudhary Waqas",
-              notes: [
-                { id: "note-2-1", note: "Left inquiry message requesting a physical visit this Saturday.", createdAt: new Date(Date.now() - 3600000 * 24).toISOString() },
-                { id: "note-2-2", note: "Called client. Confirmed Saturday physical visit slot at 4 PM.", createdAt: new Date(Date.now() - 3600000 * 22).toISOString() }
-              ],
-              createdAt: new Date(Date.now() - 3600000 * 24).toISOString()
-            },
-            {
-              id: "lead-3",
-              name: "Col. Tariq",
-              phone: "0345-5551234",
-              email: "tariq.col@outlook.com",
-              whatsApp: "0345-5551234",
-              propertyInterested: "Construction: 10 Marla Double Story (Standard Grade)",
-              source: "Calculator Forms",
-              status: "Follow Up",
-              agentId: "Muhammad Ali",
-              notes: [
-                { id: "note-3-1", note: "Saved standard construction calculation. Requested a site analysis.", createdAt: new Date(Date.now() - 3600000 * 48).toISOString() }
-              ],
-              createdAt: new Date(Date.now() - 3600000 * 48).toISOString()
-            },
-            {
-              id: "lead-4",
-              name: "Ayesha Khan",
-              phone: "0301-2223344",
-              email: "ayesha.khan@gmail.com",
-              whatsApp: "0301-2223344",
-              propertyInterested: "WhatsApp Support Inquiry",
-              source: "WhatsApp Clicks",
-              status: "Negotiation",
-              agentId: "Chaudhary Waqas",
-              notes: [
-                { id: "note-4-1", note: "Clicked WhatsApp chat button from properties portal.", createdAt: new Date(Date.now() - 3600000 * 72).toISOString() },
-                { id: "note-4-2", note: "Discussing plot prices in DHA block B.", createdAt: new Date(Date.now() - 3600000 * 68).toISOString() }
-              ],
-              createdAt: new Date(Date.now() - 3600000 * 72).toISOString()
-            },
-            {
-              id: "lead-5",
-              name: "Kamran Akmal",
-              phone: "0312-9876543",
-              email: "kamran.akmal@gmail.com",
-              whatsApp: "0312-9876543",
-              propertyInterested: "General Investment Advice",
-              source: "Contact Forms",
-              status: "Closed",
-              agentId: "Chaudhary Waqas",
-              notes: [
-                { id: "note-5-1", note: "Submitted message through contact form.", createdAt: new Date(Date.now() - 3600000 * 96).toISOString() },
-                { id: "note-5-2", note: "Deal closed: Client bought DHAB Sector A plot.", createdAt: new Date(Date.now() - 3600000 * 12).toISOString() }
-              ],
-              createdAt: new Date(Date.now() - 3600000 * 96).toISOString()
-            }
-          ];
-          setLeads(seedLeads);
-          localStorage.setItem("gem-leads", JSON.stringify(seedLeads));
+          setLeads([]);
+          localStorage.setItem("gem-leads", JSON.stringify([]));
         }
         
-        // Load or seed Agents
+        // Load or seed Agents (keeping real CEO Waqas Ahmad)
+        const seedAgents: Agent[] = [
+          {
+            id: "agent-1",
+            name: "Waqas Ahmad Chaudhary",
+            photo: "/images/waqas_ceo.png",
+            experience: "15 Years",
+            specialization: "DHA Bahawalpur Plots & Commercial Projects",
+            email: "Globalrealestates786@gmail.com",
+            phone: "+92300-0066255",
+            whatsApp: "923000066255",
+            bio: "Chaudhary Waqas Ahmad is the CEO and founder of Zameen Gem. With over 15 years of seasoned expertise in the Pakistani real estate sector, he specializes in high-value investments in DHA Bahawalpur and strategic commercial zoning."
+          }
+        ];
         const storedAgents = localStorage.getItem("gem-agents");
         if (storedAgents) {
           const parsed: Agent[] = JSON.parse(storedAgents);
-          let modified = false;
-          parsed.forEach(agent => {
-            if (agent.id === "agent-1" && (agent.photo.includes("photo-1519085360753-af0119f7cbe7") || agent.photo === "https://images.unsplash.com/photo-1519085360753-af0119f7cbe7?auto=format&fit=crop&w=300&q=80")) {
-              agent.photo = "/images/waqas_ceo.png";
-              modified = true;
-            }
-          });
-          if (modified) {
-            localStorage.setItem("gem-agents", JSON.stringify(parsed));
-          }
-          setAgents(parsed);
+          const filtered = parsed.filter(a => a.id === "agent-1" || (!["agent-2", "agent-3"].includes(a.id) && a.email !== "muhammad.ali@globalestate.com" && a.email !== "sajid.mahmood@globalestate.com"));
+          const updated = filtered.map(a => a.id === "agent-1" ? { ...a, bio: a.bio.replace(/Global Estate & Marketing/g, "Zameen Gem") } : a);
+          const finalAgents = updated.length > 0 ? updated : seedAgents;
+          setAgents(finalAgents);
+          localStorage.setItem("gem-agents", JSON.stringify(finalAgents));
         } else {
-          const seedAgents: Agent[] = [
-            {
-              id: "agent-1",
-              name: "Waqas Ahmad Chaudhary",
-              photo: "/images/waqas_ceo.png",
-              experience: "15 Years",
-              specialization: "DHA Bahawalpur Plots & Commercial Projects",
-              email: "Globalrealestates786@gmail.com",
-              phone: "+92300-0066255",
-              whatsApp: "923000066255",
-              bio: "Chaudhary Waqas Ahmad is the CEO and founder of Global Estate & Marketing. With over 15 years of seasoned expertise in the Pakistani real estate sector, he specializes in high-value investments in DHA Bahawalpur and strategic commercial zoning."
-            },
-            {
-              id: "agent-2",
-              name: "Muhammad Ali",
-              photo: "https://images.unsplash.com/photo-1560250097-0b93528c311a?auto=format&fit=crop&w=300&q=80",
-              experience: "8 Years",
-              specialization: "Residential Plots, Villas & Block B, C, D Advisory",
-              email: "muhammad.ali@globalestate.com",
-              phone: "0301-7654321",
-              whatsApp: "923000066255",
-              bio: "Muhammad Ali is a senior real estate advisor specializing in luxury villa construction and residential plot transactions in DHA Bahawalpur. He is dedicated to helping families find their dream homes with secure property acquisitions."
-            },
-            {
-              id: "agent-3",
-              name: "Sajid Mahmood",
-              photo: "https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?auto=format&fit=crop&w=300&q=80",
-              experience: "6 Years",
-              specialization: "Commercial Portfolios & High-Yield Rental Properties",
-              email: "sajid.mahmood@globalestate.com",
-              phone: "0321-5556677",
-              whatsApp: "923215556677",
-              bio: "Sajid Mahmood is a commercial specialist focusing on DHA shopping malls, high-rise plazas, and corporate office leasing. He brings deep analytical expertise to optimize yield and capital growth portfolios for active investors."
-            }
-          ];
           setAgents(seedAgents);
           localStorage.setItem("gem-agents", JSON.stringify(seedAgents));
         }
 
-        // Load or seed Users
+        // Load or seed Users (keeping Admin Chaudhary Waqas)
+        const seedUsers: UserRecord[] = [
+          {
+            id: "usr-1",
+            name: "Chaudhary Waqas",
+            email: "Globalrealestates786@gmail.com",
+            role: "Admin",
+            status: "Active",
+            dateJoined: "2024-01-15"
+          }
+        ];
         const storedUsers = localStorage.getItem("gem-users");
         if (storedUsers) {
-          setUsers(JSON.parse(storedUsers));
+          const parsed: UserRecord[] = JSON.parse(storedUsers).filter((u: UserRecord) => u.id === "usr-1" || (!["usr-2", "usr-3", "usr-4", "usr-5"].includes(u.id) && u.email !== "muhammad.ali@globalestate.com" && u.email !== "sajid.mahmood@globalestate.com" && u.email !== "info@apexdev.com"));
+          const finalUsers = parsed.length > 0 ? parsed : seedUsers;
+          setUsers(finalUsers);
+          localStorage.setItem("gem-users", JSON.stringify(finalUsers));
         } else {
-          const seedUsers: UserRecord[] = [
-            {
-              id: "usr-1",
-              name: "Chaudhary Waqas",
-              email: "Globalrealestates786@gmail.com",
-              role: "Admin",
-              status: "Active",
-              dateJoined: "2024-01-15"
-            },
-            {
-              id: "usr-2",
-              name: "Muhammad Ali",
-              email: "muhammad.ali@globalestate.com",
-              role: "Agent",
-              status: "Active",
-              dateJoined: "2024-03-20"
-            },
-            {
-              id: "usr-3",
-              name: "Sajid Mahmood",
-              email: "sajid.mahmood@globalestate.com",
-              role: "Agent",
-              status: "Active",
-              dateJoined: "2024-04-10"
-            },
-            {
-              id: "usr-4",
-              name: "Ahmad Raza",
-              email: "ahmad.raza@gmail.com",
-              role: "Buyer",
-              status: "Active",
-              dateJoined: "2024-06-01"
-            },
-            {
-              id: "usr-5",
-              name: "Apex Development",
-              email: "info@apexdev.com",
-              role: "Agency",
-              status: "Pending",
-              dateJoined: "2026-06-20"
-            }
-          ];
           setUsers(seedUsers);
           localStorage.setItem("gem-users", JSON.stringify(seedUsers));
         }
 
-        // Load or seed Agencies
+        // Load or clear Agencies
         const storedAgencies = localStorage.getItem("gem-agencies");
         if (storedAgencies) {
-          setAgencies(JSON.parse(storedAgencies));
+          const clean = JSON.parse(storedAgencies).filter((ag: AgencyRecord) => !["agency-1", "agency-2", "agency-3"].includes(ag.id));
+          setAgencies(clean);
+          localStorage.setItem("gem-agencies", JSON.stringify(clean));
         } else {
-          const seedAgencies: AgencyRecord[] = [
-            {
-              id: "agency-1",
-              name: "Apex Properties & Builders",
-              logo: "https://images.unsplash.com/photo-1486406146926-c627a92ad1ab?auto=format&fit=crop&w=150&q=80",
-              agentsCount: 14,
-              listingsCount: 45,
-              phone: "0300-1234567",
-              email: "contact@apexproperties.com",
-              status: "Active"
-            },
-            {
-              id: "agency-2",
-              name: "Royal Marketing Network",
-              logo: "https://images.unsplash.com/photo-1497366216548-37526070297c?auto=format&fit=crop&w=150&q=80",
-              agentsCount: 8,
-              listingsCount: 22,
-              phone: "0321-9876543",
-              email: "info@royalmarketing.pk",
-              status: "Pending"
-            },
-            {
-              id: "agency-3",
-              name: "Citi Associates",
-              logo: "https://images.unsplash.com/photo-1554469384-e58fac16e23a?auto=format&fit=crop&w=150&q=80",
-              agentsCount: 5,
-              listingsCount: 12,
-              phone: "0312-3456789",
-              email: "citi.associates@gmail.com",
-              status: "Active"
-            }
-          ];
-          setAgencies(seedAgencies);
-          localStorage.setItem("gem-agencies", JSON.stringify(seedAgencies));
+          setAgencies([]);
+          localStorage.setItem("gem-agencies", JSON.stringify([]));
         }
 
-        // Load or seed Advertisements
+        // Load or clear Advertisements
         const storedAds = localStorage.getItem("gem-ads");
         if (storedAds) {
-          setAds(JSON.parse(storedAds));
+          const clean = JSON.parse(storedAds).filter((ad: AdCampaign) => !["ad-1", "ad-2", "ad-3"].includes(ad.id));
+          setAds(clean);
+          localStorage.setItem("gem-ads", JSON.stringify(clean));
         } else {
-          const seedAds: AdCampaign[] = [
-            {
-              id: "ad-1",
-              title: "DHA Bahawalpur Premium Commercial Block A Launch",
-              image: "https://images.unsplash.com/photo-1582407947304-fd86f028f716?auto=format&fit=crop&w=600&q=80",
-              link: "/properties?sector=Sector A",
-              placement: "Banner",
-              views: 12400,
-              clicks: 864,
-              status: "Active"
-            },
-            {
-              id: "ad-2",
-              title: "Construct Your Dream Villa - Zero Down Payment Financing",
-              image: "https://images.unsplash.com/photo-1600585154340-be6161a56a0c?auto=format&fit=crop&w=600&q=80",
-              link: "/calculators?tab=construction",
-              placement: "Sidebar",
-              views: 9320,
-              clicks: 412,
-              status: "Active"
-            },
-            {
-              id: "ad-3",
-              title: "Luxury Penthouses in Bahawalpur Heights - Pre-launch Discount",
-              image: "https://images.unsplash.com/photo-1545324418-cc1a3fa10c00?auto=format&fit=crop&w=600&q=80",
-              link: "/properties?type=Apartment",
-              placement: "Popup",
-              views: 4500,
-              clicks: 310,
-              status: "Paused"
-            }
-          ];
-          setAds(seedAds);
-          localStorage.setItem("gem-ads", JSON.stringify(seedAds));
+          setAds([]);
+          localStorage.setItem("gem-ads", JSON.stringify([]));
         }
 
       } catch (e) {
@@ -723,7 +509,7 @@ export function AppStateProvider({ children }: { children: React.ReactNode }) {
 
         // Sync with local database lists
         let activeStatus: "Active" | "Pending" | "Suspended" = (userRole === "Agent" || userRole === "Agency") ? "Pending" : "Active";
-        let activeImage: string = meta.avatar_url || "/images/waqas_ceo.png";
+        let activeImage: string = meta.avatar_url || (userRole === "Admin" ? "/images/waqas_ceo.png" : `https://ui-avatars.com/api/?name=${encodeURIComponent(meta.full_name || session.user.email?.split("@")[0] || "User")}&background=c5a85c&color=fff`);
         if (typeof window !== "undefined") {
           const storedUsersRaw = localStorage.getItem("gem-users");
           const currentUsers: UserRecord[] = storedUsersRaw ? JSON.parse(storedUsersRaw) : [];
@@ -765,7 +551,7 @@ export function AppStateProvider({ children }: { children: React.ReactNode }) {
               const newAgency: AgencyRecord = {
                 id: `agency-${Date.now()}`,
                 name: meta.companyName || "Apex Properties",
-                logo: meta.avatar_url || "/images/waqas_ceo.png",
+                logo: meta.avatar_url || `https://ui-avatars.com/api/?name=${encodeURIComponent(meta.companyName || "Agency")}&background=c5a85c&color=fff`,
                 agentsCount: 0,
                 listingsCount: 0,
                 phone: session.user.phone || meta.phone || "",
@@ -866,21 +652,22 @@ export function AppStateProvider({ children }: { children: React.ReactNode }) {
   // Check if the current user can add another property
   const canAddProperty = () => {
     const role = userSession.role;
+    const limit = PLAN_LIMITS[userSession.plan || "Free"] || 10;
+    const userListings = properties.filter(
+      (p) => p.agent.name === userSession.name || p.contactDetails?.name === userSession.name
+    );
+    const currentCount = userListings.length;
+
     if (userSession.status === "Pending") {
-      return { allowed: false, reason: "Your account is currently pending administrative approval.", currentCount: 0, limit: 0 };
+      return { allowed: false, reason: "Your account is currently pending administrative approval.", currentCount, limit };
     }
     if (userSession.status === "Suspended") {
-      return { allowed: false, reason: "Your account has been suspended. Please contact admin support.", currentCount: 0, limit: 0 };
+      return { allowed: false, reason: "Your account has been suspended. Please contact admin support.", currentCount, limit };
     }
     // Admin and Buyer/Seller have no upload limit via this system
     if (role === "Admin" || role === "Buyer" || role === "Seller") {
-      return { allowed: true, currentCount: 0, limit: Infinity };
+      return { allowed: true, currentCount, limit: Infinity };
     }
-    const userListings = properties.filter(
-      (p) => p.agent.name === userSession.name || p.id.startsWith("prop-17")
-    );
-    const currentCount = userListings.length;
-    const limit = PLAN_LIMITS[userSession.plan];
     if (currentCount >= limit) {
       return {
         allowed: false,
@@ -1129,19 +916,30 @@ export function AppStateProvider({ children }: { children: React.ReactNode }) {
   };
 
   const deleteAgent = (id: string) => {
-    const updated = agents.filter(a => a.id !== id);
-    setAgents(updated);
-    saveState("gem-agents", updated);
+    setAgents((prev) => {
+      const target = prev.find(a => a.id === id);
+      const updated = prev.filter(a => a.id !== id);
+      saveState("gem-agents", updated);
+      if (target) {
+        setUsers((prevUsers) => {
+          const updatedUsers = prevUsers.filter(u => u.email.toLowerCase() !== target.email.toLowerCase() && u.id !== id);
+          saveState("gem-users", updatedUsers);
+          return updatedUsers;
+        });
+      }
+      return updated;
+    });
   };
 
   // User CRUD
   const addUser = (newUser: Omit<UserRecord, "id" | "dateJoined" | "status">) => {
     const isAgentOrAgency = newUser.role === "Agent" || newUser.role === "Agency";
     const isAdmin = userSession?.role === "Admin";
+    const status: "Active" | "Pending" | "Suspended" = (isAgentOrAgency && !isAdmin) ? "Pending" : "Active";
     const user: UserRecord = {
       ...newUser,
       id: `usr-${Date.now()}`,
-      status: (isAgentOrAgency && !isAdmin) ? "Pending" : "Active",
+      status,
       dateJoined: new Date().toISOString().split("T")[0]
     };
     setUsers((prev) => {
@@ -1149,6 +947,47 @@ export function AppStateProvider({ children }: { children: React.ReactNode }) {
       saveState("gem-users", updated);
       return updated;
     });
+
+    // Automatically send Approval Request Message & CRM Lead to Admin when an Agent/Agency signs up
+    if (status === "Pending") {
+      const isAgency = newUser.role === "Agency";
+      const entityName = isAgency ? (newUser.companyName || newUser.name) : newUser.name;
+      const inquiryMsg: Inquiry = {
+        id: `inq-${Date.now()}`,
+        propertyName: `[APPROVAL REQUEST] ${newUser.role} Account Registration - ${entityName}`,
+        clientName: newUser.name,
+        clientEmail: newUser.email,
+        clientPhone: newUser.phone || "N/A",
+        clientMessage: `ACCOUNT APPROVAL REQUEST: A new ${newUser.role} registration request has been submitted by ${newUser.name} (Company/Firm: ${entityName}, Email: ${newUser.email}, Phone: ${newUser.phone || "N/A"}${newUser.cnic ? `, CNIC: ${newUser.cnic}` : ""}${newUser.ntn ? `, NTN: ${newUser.ntn}` : ""}). Account status is PENDING. Please review and approve or reject this request in the Admin Dashboard.`,
+        agentName: "Chaudhary Waqas",
+        createdAt: new Date().toISOString().split("T")[0],
+        status: "Pending"
+      };
+      setInquiries((prev) => {
+        const updated = [inquiryMsg, ...prev];
+        saveState("gem-inquiries", updated);
+        return updated;
+      });
+
+      const newLead: Lead = {
+        id: `lead-${Date.now()}`,
+        name: newUser.name,
+        phone: newUser.phone || "N/A",
+        email: newUser.email,
+        whatsApp: "Yes",
+        propertyInterested: `Approval Request: ${newUser.role} Registration (${entityName})`,
+        status: "New",
+        agentId: "Chaudhary Waqas",
+        notes: [],
+        source: "Contact Forms",
+        createdAt: new Date().toISOString().split("T")[0]
+      };
+      setLeads((prev) => {
+        const updated = [newLead, ...prev];
+        saveState("gem-leads", updated);
+        return updated;
+      });
+    }
   };
 
   const updateUserRole = (id: string, role: UserRole) => {
@@ -1192,8 +1031,26 @@ export function AppStateProvider({ children }: { children: React.ReactNode }) {
 
   const deleteUser = (id: string) => {
     setUsers((prev) => {
+      const targetUser = prev.find((u) => u.id === id);
       const updated = prev.filter((u) => u.id !== id);
       saveState("gem-users", updated);
+
+      if (targetUser) {
+        setAgents((prevAgents) => {
+          const updatedAgents = prevAgents.filter((a) => a.email.toLowerCase() !== targetUser.email.toLowerCase() && a.id !== id);
+          saveState("gem-agents", updatedAgents);
+          return updatedAgents;
+        });
+        setAgencies((prevAgencies) => {
+          const updatedAgencies = prevAgencies.filter((ag) => ag.email.toLowerCase() !== targetUser.email.toLowerCase() && ag.id !== id);
+          saveState("gem-agencies", updatedAgencies);
+          return updatedAgencies;
+        });
+        if (userSession && userSession.email.toLowerCase() === targetUser.email.toLowerCase()) {
+          setUserSession(defaultSession);
+          saveState("gem-user-session", defaultSession);
+        }
+      }
       return updated;
     });
   };
@@ -1244,8 +1101,16 @@ export function AppStateProvider({ children }: { children: React.ReactNode }) {
 
   const deleteAgency = (id: string) => {
     setAgencies((prev) => {
+      const target = prev.find(a => a.id === id);
       const updated = prev.filter((a) => a.id !== id);
       saveState("gem-agencies", updated);
+      if (target) {
+        setUsers((prevUsers) => {
+          const updatedUsers = prevUsers.filter(u => u.email.toLowerCase() !== target.email.toLowerCase() && u.id !== id);
+          saveState("gem-users", updatedUsers);
+          return updatedUsers;
+        });
+      }
       return updated;
     });
   };

@@ -74,7 +74,7 @@ export default function HomePage() {
       name: "Tariq Mahmood",
       role: "Overseas Investor (UK)",
       rating: 5,
-      comment: "Global Estate and CEO Waqas Ahmad provided stellar consultancy for our DHA Bahawalpur plot purchasing. Transparent, smooth, and highly professional transactions throughout. Highly recommended!",
+      comment: "Zameen Gem and CEO Waqas Ahmad provided stellar consultancy for our DHA Bahawalpur plot purchasing. Transparent, smooth, and highly professional transactions throughout. Highly recommended!",
       videoThumb: "https://images.unsplash.com/photo-1600585154340-be6161a56a0c?auto=format&fit=crop&w=400&q=80"
     },
     {
@@ -165,7 +165,7 @@ export default function HomePage() {
         <div className="absolute inset-0 flex items-center justify-start p-6 sm:p-12 md:p-20 lg:p-32 z-25 pointer-events-none">
           <div className="max-w-2xl text-left space-y-6 animate-in fade-in slide-in-from-left-5 duration-700 pointer-events-auto">
             <span className="inline-flex items-center space-x-1.5 px-3 py-1 text-[10px] sm:text-xs font-bold bg-[#c5a85c]/25 border border-[#c5a85c]/50 rounded-full text-[#c5a85c] tracking-widest uppercase">
-              Global Estate & Marketing
+              Zameen Gem
             </span>
             
             <h1 className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-black text-white tracking-tight leading-tight">
@@ -426,7 +426,7 @@ export default function HomePage() {
               Latest Uploads
             </h2>
             <p className="text-xs sm:text-sm text-muted-text">
-              Explore the most recently listed properties on Global Estate, verified by our agents.
+              Explore the most recently listed properties on Zameen Gem, verified by our agents.
             </p>
           </div>
           <Link
@@ -573,7 +573,7 @@ export default function HomePage() {
             Our Edge
           </span>
           <h2 className="text-3xl font-black tracking-tight text-foreground mt-3">
-            Why Choose Global Estate & Marketing
+            Why Choose Zameen Gem
           </h2>
           <p className="text-xs sm:text-sm text-muted-text mt-2">
             Leading with transparency, market analysis, and high integrity property deals.

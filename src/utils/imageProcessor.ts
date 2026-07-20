@@ -66,7 +66,7 @@ export function processImage(
         const fontSize = Math.max(12, Math.round(width * 0.024));
         ctx.font = `bold ${fontSize}px sans-serif`;
         
-        const watermarkText = "GLOBAL ESTATE & MARKETING";
+        const watermarkText = "ZAMEEN GEM";
         const textMetrics = ctx.measureText(watermarkText);
         const textWidth = textMetrics.width;
         

@@ -150,7 +150,7 @@ export default function AgentsPage() {
       email: formEmail,
       phone: formPhone,
       whatsApp: formWhatsApp || formPhone,
-      bio: formBio || `${formName} is a real estate consultant at Global Estate & Marketing.`
+      bio: formBio || `${formName} is a real estate consultant at Zameen Gem.`
     });
 
     resetForm();
@@ -208,7 +208,7 @@ export default function AgentsPage() {
     } else if (!cleanPhone.startsWith("92") && cleanPhone.length > 0) {
       formattedPhone = "92" + cleanPhone;
     }
-    const text = encodeURIComponent(`Hello ${name}, I saw your profile on Global Estate. I would like to consult on properties.`);
+    const text = encodeURIComponent(`Hello ${name}, I saw your profile on Zameen Gem. I would like to consult on properties.`);
     return `https://wa.me/${formattedPhone}?text=${text}`;
   };
 

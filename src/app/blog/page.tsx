@@ -41,7 +41,7 @@ export default function BlogLandingPage() {
           Knowledge Base
         </span>
         <h1 className="text-4xl font-extrabold text-foreground tracking-tight">
-          Global Estate & Marketing Blogs
+          Zameen Gem Blogs
         </h1>
         <p className="text-xs sm:text-sm text-muted-text">
           Stay informed with the latest updates on DHA Bahawalpur construction progress, property investment guides, and real estate market trends in Pakistan.

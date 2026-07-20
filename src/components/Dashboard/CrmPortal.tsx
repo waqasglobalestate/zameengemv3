@@ -164,7 +164,7 @@ export default function CrmPortal() {
     } else if (!cleanPhone.startsWith("92") && cleanPhone.length > 0) {
       formattedPhone = "92" + cleanPhone;
     }
-    const text = encodeURIComponent(`Hello ${name}, thank you for contacting Global Estate. How can we assist you today?`);
+    const text = encodeURIComponent(`Hello ${name}, thank you for contacting Zameen Gem. How can we assist you today?`);
     return `https://wa.me/${formattedPhone}?text=${text}`;
   };
 

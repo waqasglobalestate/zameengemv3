@@ -60,7 +60,7 @@ export default function ContactPage() {
           Get In Touch
         </span>
         <h1 className="text-4xl font-extrabold text-foreground tracking-tight">
-          Contact Global Estate & Marketing
+          Contact Zameen Gem
         </h1>
         <p className="text-xs sm:text-sm text-muted-text">
           Reach out to CEO Waqas Ahmad Chaudhary or our property investment division. We are here to guide your transactions.
@@ -85,7 +85,7 @@ export default function ContactPage() {
                 <MapPin className="w-5 h-5 text-gold shrink-0 mt-0.5" />
                 <div>
                   <p className="font-bold text-foreground">Location Address</p>
-                  <p className="mt-0.5 leading-relaxed">Global Estate & Marketing, DHA Bahawalpur, Punjab, Pakistan</p>
+                  <p className="mt-0.5 leading-relaxed">Zameen Gem, DHA Bahawalpur, Punjab, Pakistan</p>
                 </div>
               </div>
 

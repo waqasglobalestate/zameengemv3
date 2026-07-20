@@ -17,7 +17,7 @@ export default function FloatingActions() {
     e.preventDefault();
     if (!chatMsg) return;
     
-    const introText = chatName ? `Hello Waqas Ahmad (CEO), I am ${chatName}. ` : "Hello Global Estate. ";
+    const introText = chatName ? `Hello Waqas Ahmad (CEO), I am ${chatName}. ` : "Hello Zameen Gem. ";
     const fullText = encodeURIComponent(introText + chatMsg);
     
     // Capture Lead in CRM
@@ -46,7 +46,7 @@ export default function FloatingActions() {
           <div className="bg-emerald-600 text-white p-4 flex justify-between items-center">
             <div>
               <h4 className="font-bold text-sm">Chat with Waqas Ahmad</h4>
-              <p className="text-[10px] text-emerald-100">CEO - Global Estate & Marketing</p>
+              <p className="text-[10px] text-emerald-100">CEO - Zameen Gem</p>
             </div>
             <button 
               onClick={() => setShowQuickChat(false)} 

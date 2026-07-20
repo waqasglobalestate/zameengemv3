@@ -39,9 +39,9 @@ function mapDbRowToProperty(row: any, mediaRows: any[]): Property {
       name: cleanName,
       phone: row.contact_phone,
       whatsapp: row.contact_phone.replace(/[^0-9]/g, ""),
-      image: row.contact_type === "agency" 
-        ? "https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?auto=format&fit=crop&w=300&q=80" 
-        : "/images/waqas_ceo.png",
+      image: cleanName.toLowerCase().includes("waqas")
+        ? "/images/waqas_ceo.png"
+        : `https://ui-avatars.com/api/?name=${encodeURIComponent(cleanName)}&background=c5a85c&color=fff`,
       experience: row.contact_type === "owner" ? "Private Submitter" : isPremium ? "Premium Partner" : "Certified Partner"
     },
     amenities: [

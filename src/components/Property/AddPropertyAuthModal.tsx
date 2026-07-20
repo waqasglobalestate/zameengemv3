@@ -86,7 +86,7 @@ export default function AddPropertyAuthModal({ isOpen, onClose }: AddPropertyAut
       email: "muhammad.ali@globalestate.com",
       phone: "0301-7654321",
       role: "Agent" as UserRole,
-      companyName: "Global Estate & Marketing",
+      companyName: "Zameen Gem",
       image: "https://images.unsplash.com/photo-1560250097-0b93528c311a?auto=format&fit=crop&w=150&q=80",
       description: "Senior Real Estate Advisor"
     },
@@ -95,7 +95,7 @@ export default function AddPropertyAuthModal({ isOpen, onClose }: AddPropertyAut
       email: "sajid.mahmood@globalestate.com",
       phone: "0321-5556677",
       role: "Agent" as UserRole,
-      companyName: "Global Estate & Marketing",
+      companyName: "Zameen Gem",
       image: "https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?auto=format&fit=crop&w=150&q=80",
       description: "Commercial Portfolio Specialist"
     },
@@ -373,7 +373,7 @@ export default function AddPropertyAuthModal({ isOpen, onClose }: AddPropertyAut
       if (userRole === "Agent") {
         addAgent({
           name: name,
-          photo: avatarPreview || "/images/waqas_ceo.png",
+          photo: avatarPreview || `https://ui-avatars.com/api/?name=${encodeURIComponent(name)}&background=c5a85c&color=fff`,
           experience: "1 Year",
           specialization: "DHA Properties",
           email: email,
@@ -384,7 +384,7 @@ export default function AddPropertyAuthModal({ isOpen, onClose }: AddPropertyAut
       } else if (userRole === "Agency") {
         addAgency({
           name: agencyNameInput,
-          logo: avatarPreview || "/images/waqas_ceo.png",
+          logo: avatarPreview || `https://ui-avatars.com/api/?name=${encodeURIComponent(agencyNameInput)}&background=c5a85c&color=fff`,
           phone: phone,
           email: email,
           status: "Pending"
@@ -400,7 +400,7 @@ export default function AddPropertyAuthModal({ isOpen, onClose }: AddPropertyAut
           phone: phone,
           role: userRole,
           companyName: "Individual Seller",
-          image: "/images/waqas_ceo.png",
+          image: avatarPreview || `https://ui-avatars.com/api/?name=${encodeURIComponent(name)}&background=c5a85c&color=fff`,
           plan: "Free",
           status: "Active"
         });
@@ -457,7 +457,7 @@ export default function AddPropertyAuthModal({ isOpen, onClose }: AddPropertyAut
           email: "Globalrealestates786@gmail.com",
           phone: "+92300-0066255",
           role: "Admin",
-          companyName: "Global Estate & Marketing",
+          companyName: "Zameen Gem",
           image: "/images/waqas_ceo.png",
           plan: "Pro",
           status: "Active"
@@ -500,7 +500,7 @@ export default function AddPropertyAuthModal({ isOpen, onClose }: AddPropertyAut
             phone: matchedUser.phone || "",
             role: matchedUser.role,
             companyName: matchedUser.companyName || (matchedUser.role === "Agency" ? "Apex Properties" : matchedUser.role === "Agent" ? "Independent Agent" : "Individual Seller"),
-            image: matchedUser.image || "/images/waqas_ceo.png",
+            image: matchedUser.image || (matchedUser.role === "Admin" ? "/images/waqas_ceo.png" : `https://ui-avatars.com/api/?name=${encodeURIComponent(matchedUser.name)}&background=c5a85c&color=fff`),
             plan: "Free",
             status: matchedUser.status
           });
@@ -663,7 +663,7 @@ export default function AddPropertyAuthModal({ isOpen, onClose }: AddPropertyAut
                 <div className="text-center space-y-2">
                   <span className="text-[10px] font-bold text-gold uppercase tracking-[0.2em]">Add Property Portal</span>
                   <h3 className="text-2xl sm:text-3xl font-extrabold text-foreground tracking-tight">
-                    Add Property to Global Estate
+                    Add Property to Zameen Gem
                   </h3>
                   <p className="text-xs sm:text-sm text-muted-text max-w-md mx-auto">
                     Choose whether you want to log in using an existing simulation profile or register a new one.
@@ -760,7 +760,7 @@ export default function AddPropertyAuthModal({ isOpen, onClose }: AddPropertyAut
                   <div className="space-y-6 pt-2">
                     <form onSubmit={handleLoginFormSubmit} className="space-y-4 max-w-sm mx-auto p-5 border border-border-base bg-muted-bg/10 rounded-2xl shadow-sm">
                       <div className="text-center space-y-1">
-                        <h4 className="font-extrabold text-sm text-foreground">Sign In to Global Estate</h4>
+                        <h4 className="font-extrabold text-sm text-foreground">Sign In to Zameen Gem</h4>
                         <p className="text-[9px] text-muted-text uppercase tracking-wider">Enter your credentials below</p>
                       </div>
                       
@@ -1278,7 +1278,7 @@ export default function AddPropertyAuthModal({ isOpen, onClose }: AddPropertyAut
                   <p className="text-xs text-muted-text max-w-sm mx-auto">
                     {selectedType === "agent" || selectedType === "agency"
                       ? "Thank you for registering. Your profile is pending administrative review. Redirecting to your dashboard..."
-                      : "Welcome to Global Estate. Redirecting you to the listing creation portal..."}
+                      : "Welcome to Zameen Gem. Redirecting you to the listing creation portal..."}
                   </p>
                 </div>
 

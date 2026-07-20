@@ -30,11 +30,11 @@ export default function PropertyDetailPage() {
   const property = properties.find((p) => p.id === propertyId);
 
   // Extract contact numbers and uploader details dynamically
-  const contactName = property?.contactDetails?.name || property?.agent.name || "Global Estate Agent";
+  const contactName = property?.contactDetails?.name || property?.agent.name || "Zameen Gem Agent";
   const contactPhone = property?.contactDetails?.phone || property?.agent.phone || "+92300-0066255";
   const whatsappNumber = property?.agent.whatsapp || contactPhone.replace(/[^0-9]/g, "");
   const publisherType = property?.contactDetails?.type || (property?.agent.experience.includes("CEO") ? "Admin" : "Agent");
-  const agencyName = property?.contactDetails?.agencyName || (property?.agent.experience.includes("CEO") ? "Global Estate & Marketing" : "");
+  const agencyName = property?.contactDetails?.agencyName || (property?.agent.experience.includes("CEO") ? "Zameen Gem" : "");
 
   // Instant Query state
   const [showQueryModal, setShowQueryModal] = useState(false);
@@ -416,7 +416,7 @@ export default function PropertyDetailPage() {
             <div className="relative w-20 h-20 mx-auto rounded-full overflow-hidden border-2 border-gold shadow-md">
               {/* eslint-disable-next-line @next/next/no-img-element */}
               <img 
-                src={property.agent.image} 
+                src={(!contactName.toLowerCase().includes("waqas") && property.agent.image === "/images/waqas_ceo.png") ? `https://ui-avatars.com/api/?name=${encodeURIComponent(contactName)}&background=c5a85c&color=fff` : (property.agent.image || `https://ui-avatars.com/api/?name=${encodeURIComponent(contactName)}&background=c5a85c&color=fff`)} 
                 alt={contactName} 
                 className="w-full h-full object-cover"
               />
@@ -492,7 +492,7 @@ export default function PropertyDetailPage() {
             {contactName.includes("Waqas") && (
               <div className="pt-2 flex items-center justify-center space-x-1.5 text-[10px] text-emerald-600 dark:text-emerald-400 font-bold">
                 <UserCheck className="w-3.5 h-3.5" />
-                <span>Global Estate Verified Lead Consultant</span>
+                <span>Zameen Gem Verified Lead Consultant</span>
               </div>
             )}
           </div>

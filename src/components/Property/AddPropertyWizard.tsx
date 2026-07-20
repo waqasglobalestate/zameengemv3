@@ -612,7 +612,7 @@ export default function AddPropertyWizard({ onSuccess }: AddPropertyWizardProps)
               <Sparkles className="w-5 h-5 text-gold" />
               <span>Add Property Pro Submission Wizard</span>
             </h2>
-            <p className="text-[11px] text-muted-text mt-0.5">Submit premium listings to the Global Estate directory.</p>
+            <p className="text-[11px] text-muted-text mt-0.5">Submit premium listings to the Zameen Gem directory.</p>
           </div>
           <span className="text-xs font-bold text-gold px-2.5 py-1 bg-gold/10 border border-gold/20 rounded-full">
             Step {step} of 8
