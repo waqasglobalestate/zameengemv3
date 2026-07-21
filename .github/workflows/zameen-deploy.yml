@@ -22,15 +22,17 @@ jobs:
     - name: Install Dependencies
       run: npm install
 
-    - name: Build Project
+- name: Build Project
       env:
         NEXT_PUBLIC_SUPABASE_URL: ${{ secrets.NEXT_PUBLIC_SUPABASE_URL }}
         NEXT_PUBLIC_SUPABASE_ANON_KEY: ${{ secrets.NEXT_PUBLIC_SUPABASE_ANON_KEY }}
       run: |
         npm run build
-        mkdir -p public/_next
-        cp -r .next/static public/_next/
+        rm -rf _next
+        mkdir -p _next
+        cp -r .next/static _next/
 
+        
     - name: Zip Files for Transfer
       run: zip -r deploy.zip . -x "node_modules/*" ".git/*" ".github/*"
 
