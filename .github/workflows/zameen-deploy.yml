@@ -1,0 +1,59 @@
+name: Deploy Next.js to Hostinger
+
+on:
+  push:
+    branches:
+      - master
+      - main
+
+jobs:
+  build-and-deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout Code
+      uses: actions/checkout@v4
+
+    - name: Setup Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: '20'
+
+    - name: Install Dependencies
+      run: npm install
+
+    - name: Build Project
+      env:
+        NEXT_PUBLIC_SUPABASE_URL: ${{ secrets.NEXT_PUBLIC_SUPABASE_URL }}
+        NEXT_PUBLIC_SUPABASE_ANON_KEY: ${{ secrets.NEXT_PUBLIC_SUPABASE_ANON_KEY }}
+      run: npm run build
+
+    - name: Zip Files for Transfer
+      run: zip -r deploy.zip . -x "node_modules/*" ".git/*" ".github/*"
+
+    - name: Upload to Hostinger via SCP
+      uses: appleboy/scp-action@v0.1.7
+      with:
+        host: ${{ secrets.HOSTINGER_HOST }}
+        username: ${{ secrets.HOSTINGER_USERNAME }}
+        password: ${{ secrets.HOSTINGER_PASSWORD }}
+        port: ${{ secrets.HOSTINGER_PORT }}
+        source: "deploy.zip"
+        target: "domains/zameengem.com/public_html"
+        overwrite: true
+
+    - name: Extract and Install on Hostinger Server
+      uses: appleboy/ssh-action@v1.0.3
+      with:
+        host: ${{ secrets.HOSTINGER_HOST }}
+        username: ${{ secrets.HOSTINGER_USERNAME }}
+        password: ${{ secrets.HOSTINGER_PASSWORD }}
+        port: ${{ secrets.HOSTINGER_PORT }}
+        script: |
+          cd domains/zameengem.com/public_html
+          unzip -o deploy.zip
+          rm deploy.zip
+          source ~/.profile
+          nvm install 20
+          nvm use 20
+          npm install --omit=dev
