@@ -1,5 +1,4 @@
 import type { Metadata } from "next";
-import { Outfit } from "next/font/google";
 import "./globals.css";
 import { AppStateProvider } from "@/context/AppStateContext";
 import Header from "@/components/Layout/Header";
@@ -8,14 +7,6 @@ import FloatingActions from "@/components/Layout/FloatingActions";
 import AIAssistant from "@/components/AI/AIAssistant";
 import AuthModalContainer from "@/components/Property/AuthModalContainer";
 import Script from "next/script";
-
-const outfit = Outfit({
-  variable: "--font-outfit",
-  subsets: ["latin"],
-  weight: ["300", "400", "500", "600", "700", "800"],
-  display: "swap",
-  fallback: ["system-ui", "arial"],
-});
 
 export const metadata: Metadata = {
   title: "Zameen Gem | Premier Property Advisors",
@@ -39,7 +30,7 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en" className="h-full scroll-smooth" suppressHydrationWarning>
-      <body className={`${outfit.variable} font-sans min-h-full flex flex-col antialiased`} suppressHydrationWarning>
+      <body className="font-sans min-h-full flex flex-col antialiased" suppressHydrationWarning>
         {process.env.NODE_ENV === "development" && (
           <Script
             id="suppress-hydration-errors"
