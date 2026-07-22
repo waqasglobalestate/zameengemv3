@@ -135,7 +135,7 @@ export async function getProperties(): Promise<Property[]> {
 
     return props.map((p) => mapDbRowToProperty(p, media || []));
   } catch (err) {
-    console.error("Error loading properties from Supabase:", err);
+    console.warn("Error loading properties from Supabase:", err);
     throw err;
   }
 }

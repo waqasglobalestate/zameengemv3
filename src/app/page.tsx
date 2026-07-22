@@ -21,7 +21,8 @@ import {
   Play, 
   ChevronDown, 
   ChevronUp,
-  Home
+  Home,
+  Flame
 } from "lucide-react";
 
 const pakistanCities = [
@@ -113,7 +114,17 @@ export default function HomePage() {
     router.push(`/properties?${params.toString()}`);
   };
 
-  // Featured Properties listing sorted by premium first, then latest
+  // 1. Hot Listings: exclusive listings for Pro members marked as isHot
+  const hotListings = properties
+    .filter((p) => p.isHot && p.isApproved !== false)
+    .sort((a, b) => {
+      const timeA = parseInt(a.id.replace(/\D/g, "")) || 0;
+      const timeB = parseInt(b.id.replace(/\D/g, "")) || 0;
+      return timeB - timeA;
+    })
+    .slice(0, 4);
+
+  // 2. Featured Properties listing sorted by premium first, then latest
   const featuredProperties = properties
     .filter((p) => p.purpose === purpose && p.isApproved !== false)
     .sort((a, b) => {
@@ -126,7 +137,7 @@ export default function HomePage() {
     })
     .slice(0, 8);
 
-  // Latest Uploads: active properties sorted by ID timestamp (newest first)
+  // 3. Fresh Listings (Latest Uploads): active properties sorted by ID timestamp (newest first)
   const latestUploads = [...properties]
     .filter((p) => p.isApproved !== false)
     .sort((a, b) => {
@@ -415,11 +426,86 @@ export default function HomePage() {
         </div>
       </section>
 
-      {/* 2. LATEST UPLOADS */}
+      {/* 2. HOT LISTINGS (1st - Top Priority - Exclusive to Pro Members) */}
       <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16 border-b border-border-base/50">
         <div className="flex flex-col sm:flex-row sm:items-end justify-between mb-10 gap-4">
           <div className="space-y-2">
-            <span className="text-[10px] font-bold text-gold uppercase tracking-widest bg-gold/10 px-2.5 py-1 rounded-md border border-gold/20">
+            <span className="inline-flex items-center space-x-1.5 text-[10px] font-extrabold text-rose-500 uppercase tracking-widest bg-rose-500/10 px-2.5 py-1 rounded-md border border-rose-500/20">
+              <Flame className="w-3.5 h-3.5 text-rose-500 fill-rose-500 animate-pulse" />
+              <span>Pro Exclusive</span>
+            </span>
+            <h2 className="text-3xl font-black tracking-tight text-foreground mt-3 flex items-center gap-2">
+              Hot Listings
+            </h2>
+            <p className="text-xs sm:text-sm text-muted-text">
+              Exclusive high-demand property deals posted by Pro members &amp; verified top agencies.
+            </p>
+          </div>
+          <Link
+            href="/properties?hotOnly=true"
+            className="group inline-flex items-center space-x-1 text-sm font-bold text-rose-600 dark:text-rose-400 hover:text-rose-700 dark:hover:text-rose-300 transition-colors mt-4 sm:mt-0 shrink-0"
+          >
+            <span>Explore All Hot Deals</span>
+            <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
+          </Link>
+        </div>
+
+        {hotListings.length === 0 ? (
+          <div className="p-10 border border-dashed border-rose-500/30 rounded-2xl text-center bg-rose-500/5 text-muted-text">
+            <Flame className="w-8 h-8 text-rose-500/50 mx-auto mb-2" />
+            <p className="text-sm font-semibold text-foreground">No hot listings active at the moment.</p>
+            <p className="text-xs text-muted-text mt-1">Upgrade to a Pro Member account to list high-visibility Hot Properties here.</p>
+          </div>
+        ) : (
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+            {hotListings.map((prop) => (
+              <PropertyCard key={prop.id} property={prop} />
+            ))}
+          </div>
+        )}
+      </section>
+
+      {/* 3. FEATURED PROPERTIES (2nd Priority) */}
+      <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16 border-b border-border-base/50">
+        <div className="flex flex-col sm:flex-row sm:items-end justify-between mb-10 gap-4">
+          <div className="space-y-2">
+            <span className="text-[10px] font-bold uppercase tracking-wider text-gold bg-gold/10 px-3 py-1 rounded-full border border-gold/20">
+              Verified Listings
+            </span>
+            <h2 className="text-3xl font-black tracking-tight text-foreground mt-3">
+              Featured Properties
+            </h2>
+            <p className="text-xs sm:text-sm text-muted-text">
+              Top handpicked real estate investment opportunities currently on the market.
+            </p>
+          </div>
+          <Link
+            href="/properties"
+            className="group inline-flex items-center space-x-1 text-sm font-bold text-royal dark:text-white hover:text-gold dark:hover:text-gold transition-colors mt-4 sm:mt-0 shrink-0"
+          >
+            <span>See All Listings</span>
+            <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
+          </Link>
+        </div>
+
+        {featuredProperties.length === 0 ? (
+          <div className="p-10 border border-border-base rounded-2xl text-center text-muted-text bg-background/30">
+            No featured properties found matching your selection.
+          </div>
+        ) : (
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+            {featuredProperties.map((prop) => (
+              <PropertyCard key={prop.id} property={prop} />
+            ))}
+          </div>
+        )}
+      </section>
+
+      {/* 4. FRESH LISTINGS / LATEST UPLOADS (3rd Priority) */}
+      <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-20">
+        <div className="flex flex-col sm:flex-row sm:items-end justify-between mb-10 gap-4">
+          <div className="space-y-2">
+            <span className="text-[10px] font-bold text-emerald-600 dark:text-emerald-400 uppercase tracking-widest bg-emerald-500/10 px-2.5 py-1 rounded-md border border-emerald-500/20">
               Fresh Listings
             </span>
             <h2 className="text-3xl font-black tracking-tight text-foreground mt-3">
@@ -449,36 +535,6 @@ export default function HomePage() {
             ))}
           </div>
         )}
-      </section>
-
-      {/* 3. FEATURED PROPERTIES */}
-      <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-20">
-        <div className="flex flex-col sm:flex-row sm:items-end justify-between mb-10">
-          <div>
-            <span className="text-xs font-bold uppercase tracking-wider text-gold bg-gold/10 px-3 py-1 rounded-full">
-              Verified Listings
-            </span>
-            <h2 className="text-3xl font-black tracking-tight text-foreground mt-3">
-              Featured Properties
-            </h2>
-            <p className="text-xs sm:text-sm text-muted-text mt-1">
-              Top handpicked real estate investment opportunities currently on the market.
-            </p>
-          </div>
-          <Link
-            href="/properties"
-            className="group inline-flex items-center space-x-1 text-sm font-bold text-royal dark:text-white hover:text-gold dark:hover:text-gold transition-colors mt-4 sm:mt-0"
-          >
-            <span>See All Listings</span>
-            <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
-          </Link>
-        </div>
-
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-          {featuredProperties.map((prop) => (
-            <PropertyCard key={prop.id} property={prop} />
-          ))}
-        </div>
       </section>
 
       {/* 4. DHA BAHAWALPUR INVESTMENT FOCUS SECTION */}
