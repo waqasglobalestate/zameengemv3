@@ -140,7 +140,7 @@ interface AppStateContextProps {
   setAuthModalDefaultTab: (tab: "login" | "signup") => void;
   // Plan / subscription
   upgradeToPro: () => void;
-  canAddProperty: () => { allowed: boolean; reason?: string; currentCount: number; limit: number };
+  canAddProperty: () => { allowed: boolean; code?: string; reason?: string; currentCount: number; limit: number };
   
   // CRM Lead state
   leads: Lead[];
@@ -666,25 +666,23 @@ export function AppStateProvider({ children }: { children: React.ReactNode }) {
     );
     const currentCount = userListings.length;
 
-    if (userSession.status === "Pending") {
-      return { allowed: false, reason: "Your account is currently pending administrative approval.", currentCount, limit };
-    }
     if (userSession.status === "Suspended") {
-      return { allowed: false, reason: "Your account has been suspended. Please contact admin support.", currentCount, limit };
+      return { allowed: false, code: "suspended", reason: "Your account has been suspended. Please contact admin support.", currentCount, limit };
     }
-    // Admin and Buyer/Seller have no upload limit via this system
-    if (role === "Admin" || role === "Buyer" || role === "Seller") {
-      return { allowed: true, currentCount, limit: Infinity };
+    // Admin has no upload limit
+    if (role === "Admin") {
+      return { allowed: true, code: "ok", currentCount, limit: Infinity };
     }
     if (currentCount >= limit) {
       return {
         allowed: false,
-        reason: `You have reached your ${userSession.plan} plan limit of ${limit} listings.`,
+        code: "limit_reached",
+        reason: `You have reached your ${userSession.plan || "Free"} plan limit of ${limit} listings.`,
         currentCount,
         limit
       };
     }
-    return { allowed: true, currentCount, limit };
+    return { allowed: true, code: "ok", currentCount, limit };
   };
 
   const changeAdminPassword = (newPass: string) => {

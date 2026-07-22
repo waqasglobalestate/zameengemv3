@@ -401,20 +401,18 @@ export default function AddPropertyAuthModal({ isOpen, onClose }: AddPropertyAut
         });
       }
 
-      // Auto login locally for simulated seamless testing ONLY IF NOT PENDING
+      // Auto login locally for simulated seamless testing
       const isPending = userRole === "Agent" || userRole === "Agency";
-      if (!isPending) {
-        loginUser({
-          name: name,
-          email: email,
-          phone: phone,
-          role: userRole,
-          companyName: "Individual Seller",
-          image: avatarPreview || `https://ui-avatars.com/api/?name=${encodeURIComponent(name)}&background=c5a85c&color=fff`,
-          plan: "Free",
-          status: "Active"
-        });
-      }
+      loginUser({
+        name: name,
+        email: email,
+        phone: phone,
+        role: userRole,
+        companyName: agencyNameInput || (userRole === "Agency" ? "Apex Properties" : userRole === "Agent" ? "Independent Agent" : "Individual Seller"),
+        image: avatarPreview || `https://ui-avatars.com/api/?name=${encodeURIComponent(name)}&background=c5a85c&color=fff`,
+        plan: "Free",
+        status: isPending ? "Pending" : "Active"
+      });
 
       setIsSubmitting(false);
       setStep("success");
@@ -436,12 +434,8 @@ export default function AddPropertyAuthModal({ isOpen, onClose }: AddPropertyAut
 
       setTimeout(() => {
         onClose();
-        if (!isPending) {
-          window.location.href = "/dashboard?tab=add";
-        } else {
-          window.location.href = "/";
-        }
-      }, 3000);
+        window.location.href = "/dashboard?tab=add";
+      }, 2000);
 
     } catch (err: any) {
       setError(err.message || "Sign up failed. Please try again.");

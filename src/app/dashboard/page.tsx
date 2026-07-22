@@ -391,7 +391,7 @@ export default function DashboardPortal() {
                   }`}>
                     {isPro ? "PRO" : "FREE"}
                   </span>
-                  {!check.allowed && (
+                  {check.code === "limit_reached" && (
                     <span className="text-[10px] font-bold text-red-500 bg-red-500/10 px-2 py-0.5 rounded-full">Limit Reached</span>
                   )}
                 </div>
@@ -622,10 +622,26 @@ export default function DashboardPortal() {
             </div>
           )}
 
-          {/* Sub content: add listing form — gated by plan */}
           {activeSubTab === "add" && (() => {
             const check = canAddProperty();
             if (!check.allowed) {
+              if (check.code === "suspended") {
+                return (
+                  <div className="rounded-2xl border-2 border-dashed border-red-400/40 bg-red-500/5 p-12 text-center space-y-5">
+                    <div className="flex justify-center">
+                      <div className="p-4 rounded-full bg-red-500/10 border border-red-500/20">
+                        <Lock className="w-10 h-10 text-red-400" />
+                      </div>
+                    </div>
+                    <div>
+                      <h3 className="text-xl font-extrabold text-foreground mb-2">Account Suspended</h3>
+                      <p className="text-sm text-muted-text max-w-sm mx-auto">
+                        Your account has been suspended by administration. Please contact support for assistance.
+                      </p>
+                    </div>
+                  </div>
+                );
+              }
               return (
                 <div className="rounded-2xl border-2 border-dashed border-red-400/40 bg-red-500/5 p-12 text-center space-y-5">
                   <div className="flex justify-center">
@@ -637,7 +653,7 @@ export default function DashboardPortal() {
                     <h3 className="text-xl font-extrabold text-foreground mb-2">Listing Limit Reached</h3>
                     <p className="text-sm text-muted-text max-w-sm mx-auto">
                       You&apos;ve used <span className="font-bold text-foreground">{check.currentCount} / {check.limit}</span> listings on your{" "}
-                      <span className="font-bold text-foreground">Free plan</span>. Delete an existing listing or upgrade to Pro to add more.
+                      <span className="font-bold text-foreground">{userSession.plan || "Free"} plan</span>. Delete an existing listing or upgrade to Pro to add more.
                     </p>
                   </div>
                   <div className="flex flex-col sm:flex-row gap-3 justify-center">
