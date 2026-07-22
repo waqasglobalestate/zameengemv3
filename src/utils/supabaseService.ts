@@ -16,10 +16,14 @@ function mapDbRowToProperty(row: any, mediaRows: any[]): Property {
   const areaValue = Number(row.area || 10);
   const areaUnitLabel = row.area_unit === "kanal" ? "Kanal" : "Marla";
 
-  // Parse premium status
+  // Parse premium and hot status
   const rawName = row.contact_name || "";
-  const isPremium = rawName.endsWith(" | PRO");
-  const cleanName = isPremium ? rawName.replace(" | PRO", "") : rawName;
+  const isHot = rawName.includes(" | HOT");
+  const isPremium = rawName.includes(" | PRO");
+  let cleanName = rawName;
+  if (isPremium) cleanName = cleanName.replace(" | PRO", "");
+  if (isHot) cleanName = cleanName.replace(" | HOT", "");
+  cleanName = cleanName.trim();
 
   return {
     id: row.id,
@@ -52,6 +56,7 @@ function mapDbRowToProperty(row: any, mediaRows: any[]): Property {
     purpose: mapDbPurposeToPurpose(row.purpose),
     isFeatured: Number(row.views_count) > 400 || isPremium,
     isPremium: isPremium,
+    isHot: isHot,
     isCorner: row.is_corner,
     isParkFacing: row.is_park_facing,
     isMainBoulevard: row.is_main_boulevard,
@@ -68,6 +73,7 @@ function mapDbRowToProperty(row: any, mediaRows: any[]): Property {
       phone: row.contact_phone,
       agencyName: row.agency_name || undefined
     },
+    createdAt: row.created_at ? new Date(row.created_at).toISOString().split("T")[0] : new Date().toISOString().split("T")[0],
     isApproved: row.is_approved,
     roiPotential: row.purpose === "sell" ? "9.5%" : "4.8%",
     nearby: {
@@ -145,6 +151,9 @@ export async function insertSupabaseProperty(p: Omit<Property, "id" | "viewsCoun
     let contactName = p.contactDetails ? p.contactDetails.name : p.agent.name;
     if (p.isPremium) {
       contactName = contactName + " | PRO";
+    }
+    if (p.isHot) {
+      contactName = contactName + " | HOT";
     }
     const contactPhone = p.contactDetails ? p.contactDetails.phone : p.agent.phone;
     const agencyName = p.contactDetails ? p.contactDetails.agencyName : undefined;

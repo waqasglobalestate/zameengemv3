@@ -23,6 +23,8 @@ export interface Property {
   purpose: "Buy" | "Rent" | "Project";
   isFeatured: boolean;
   isPremium?: boolean;
+  isHot?: boolean;
+  createdAt?: string;
   isCorner: boolean;
   isParkFacing: boolean;
   isMainBoulevard: boolean;

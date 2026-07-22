@@ -18,7 +18,8 @@ import {
   Sparkles,
   UserCheck,
   Mail,
-  MessageSquare
+  MessageSquare,
+  Flame
 } from "lucide-react";
 
 export default function PropertyDetailPage() {
@@ -197,6 +198,12 @@ export default function PropertyDetailPage() {
       <div className="flex flex-col md:flex-row md:items-start md:justify-between gap-4 border-b border-border-base pb-6">
         <div>
           <div className="flex flex-wrap gap-2 items-center mb-2">
+            {property.isHot && (
+              <span className="text-[10px] font-bold uppercase tracking-wider bg-rose-600 text-white px-2.5 py-1 rounded flex items-center gap-1 shadow animate-pulse">
+                <Flame className="w-3.5 h-3.5 fill-white text-white" />
+                <span>Hot Listing</span>
+              </span>
+            )}
             <span className="text-[10px] font-bold uppercase tracking-wider bg-royal dark:bg-white text-white dark:text-royal px-2.5 py-1 rounded">
               {property.purpose === "Project" ? "Featured Project" : `For ${property.purpose}`}
             </span>

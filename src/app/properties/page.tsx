@@ -15,7 +15,8 @@ import {
   MapPin,
   Building2,
   Ruler,
-  DollarSign
+  DollarSign,
+  Flame
 } from "lucide-react";
 
 // Wrap the main content in a component that accesses search params
@@ -45,6 +46,7 @@ function SearchPropertiesContent() {
   const [possession, setPossession] = useState<string>(searchParams.get("possessionStatus") || "");
   const [installment, setInstallment] = useState<boolean>(searchParams.get("installmentAvailable") === "true");
   const [globalQuery, setGlobalQuery] = useState<string>(searchParams.get("query") || "");
+  const [hotOnly, setHotOnly] = useState<boolean>(searchParams.get("hotOnly") === "true");
 
   // Sync URL search params to local state variables on change
   useEffect(() => {
@@ -61,6 +63,7 @@ function SearchPropertiesContent() {
     setPossession(searchParams.get("possessionStatus") || "");
     setInstallment(searchParams.get("installmentAvailable") === "true");
     setGlobalQuery(searchParams.get("query") || "");
+    setHotOnly(searchParams.get("hotOnly") === "true");
   }, [searchParams]);
 
   // Sorting
@@ -93,6 +96,7 @@ function SearchPropertiesContent() {
     setMainBoulevard(false);
     setPossession("");
     setInstallment(false);
+    setHotOnly(false);
     setSortOption("latest");
     router.replace("/properties");
   };
@@ -147,11 +151,18 @@ function SearchPropertiesContent() {
     if (mainBoulevard && !p.isMainBoulevard) return false;
     if (possession && p.possessionStatus !== possession) return false;
     if (installment && !p.installmentAvailable) return false;
+    if (hotOnly && !p.isHot) return false;
     return true;
   });
 
   // Sort listings: Premium first, then by user sort option
   const sortedProperties = [...filteredProperties].sort((a, b) => {
+    const hotA = a.isHot ? 1 : 0;
+    const hotB = b.isHot ? 1 : 0;
+    if (hotA !== hotB) {
+      return hotB - hotA;
+    }
+
     const premiumA = a.isPremium ? 1 : 0;
     const premiumB = b.isPremium ? 1 : 0;
     if (premiumA !== premiumB) {
@@ -344,6 +355,11 @@ function SearchPropertiesContent() {
             <label className="flex items-center space-x-1.5 text-xs font-bold text-muted-text hover:text-foreground cursor-pointer">
               <input type="checkbox" checked={installment} onChange={(e) => setInstallment(e.target.checked)} className="rounded accent-gold text-white" />
               <span>Installments Available</span>
+            </label>
+            <label className="flex items-center space-x-1.5 text-xs font-bold text-rose-500 hover:text-rose-600 cursor-pointer">
+              <input type="checkbox" checked={hotOnly} onChange={(e) => setHotOnly(e.target.checked)} className="rounded accent-rose-500 text-white" />
+              <Flame className="w-3.5 h-3.5 fill-rose-500 text-rose-500" />
+              <span>Hot Listings</span>
             </label>
           </div>
 

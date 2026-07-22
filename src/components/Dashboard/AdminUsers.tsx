@@ -1,8 +1,8 @@
 "use client";
 
 import React, { useState } from "react";
-import { useAppState, UserRole } from "@/context/AppStateContext";
-import { Search, Plus, Trash2, UserX, UserCheck, X, Mail, ShieldAlert } from "lucide-react";
+import { useAppState, UserRole, UserRecord } from "@/context/AppStateContext";
+import { Search, Plus, Trash2, UserX, UserCheck, X, Mail, ShieldAlert, Eye, Calendar, Phone, Building2, ExternalLink, FileText, Flame } from "lucide-react";
 
 export default function AdminUsers() {
   const { 
@@ -11,12 +11,14 @@ export default function AdminUsers() {
     updateUserRole, 
     updateUserStatus, 
     deleteUser,
-    userSession 
+    userSession,
+    properties 
   } = useAppState();
 
   const [searchQuery, setSearchQuery] = useState("");
   const [roleFilter, setRoleFilter] = useState("All");
   const [statusFilter, setStatusFilter] = useState("All");
+  const [selectedUser, setSelectedUser] = useState<UserRecord | null>(null);
   
   // Add User Form States
   const [showAddModal, setShowAddModal] = useState(false);
@@ -210,6 +212,18 @@ export default function AdminUsers() {
                   <td className="p-3.5 text-right whitespace-nowrap">
                     <div className="flex justify-end items-center space-x-2">
                       
+                      {/* View Details button */}
+                      {(u.role === "Agent" || u.role === "Agency") && (
+                        <button
+                          onClick={() => setSelectedUser(u)}
+                          className="py-1 px-2.5 bg-royal/10 text-royal hover:bg-royal hover:text-white font-bold text-[10px] rounded flex items-center space-x-1 cursor-pointer transition-all border border-royal/20"
+                          title="View Details"
+                        >
+                          <Eye className="w-3.5 h-3.5" />
+                          <span>Details</span>
+                        </button>
+                      )}
+
                       {/* Approve button for Pending */}
                       {u.status === "Pending" && (
                         <button
@@ -369,6 +383,270 @@ export default function AdminUsers() {
               </div>
 
             </form>
+
+          </div>
+        </div>
+      )}
+
+      {/* View User Details Modal */}
+      {selectedUser && (
+        <div className="fixed inset-0 z-50 bg-black/70 backdrop-blur-sm flex items-center justify-center p-4">
+          <div className="w-full max-w-4xl max-h-[90vh] overflow-y-auto rounded-2xl border border-border-base bg-white dark:bg-slate-950 p-6 shadow-2xl glass animate-in zoom-in-95 duration-200 text-foreground">
+            
+            {/* Header */}
+            <div className="flex justify-between items-start border-b border-border-base/50 pb-4 mb-6">
+              <div className="flex items-center space-x-4">
+                <div className="w-12 h-12 rounded-full bg-gradient-to-tr from-royal to-royal-hover text-white flex items-center justify-center font-black text-lg select-none uppercase">
+                  {selectedUser.name.substring(0, 2)}
+                </div>
+                <div>
+                  <h3 className="text-base font-black text-foreground flex items-center gap-2">
+                    <span>{selectedUser.name}</span>
+                    <span className="px-2 py-0.5 text-[9px] bg-gold/20 text-gold border border-gold/30 rounded font-black uppercase tracking-wider">
+                      {selectedUser.role}
+                    </span>
+                    {(() => {
+                      let style = "bg-emerald-500/10 text-emerald-500 border-emerald-500/25";
+                      if (selectedUser.status === "Suspended") style = "bg-red-500/10 text-red-500 border-red-500/25";
+                      if (selectedUser.status === "Pending") style = "bg-amber-500/10 text-amber-500 border-amber-500/25";
+                      return (
+                        <span className={`px-2 py-0.5 rounded text-[9px] font-black tracking-wider border uppercase ${style}`}>
+                          {selectedUser.status}
+                        </span>
+                      );
+                    })()}
+                  </h3>
+                  <p className="text-[10px] text-muted-text flex items-center space-x-1.5 mt-0.5">
+                    <Calendar className="w-3.5 h-3.5" />
+                    <span>Registered on {selectedUser.dateJoined}</span>
+                  </p>
+                </div>
+              </div>
+              <button 
+                onClick={() => setSelectedUser(null)}
+                className="p-1 border border-border-base rounded hover:bg-muted-bg text-muted-text transition-colors"
+              >
+                <X className="w-4 h-4" />
+              </button>
+            </div>
+
+            {/* Content grid */}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              
+              {/* Left Column: Owner & Document credentials */}
+              <div className="space-y-5">
+                <div className="p-4 rounded-xl border border-border-base/60 bg-muted-bg/10 space-y-3.5">
+                  <h4 className="text-[11px] font-black uppercase text-gold tracking-widest border-b border-border-base/30 pb-1.5">
+                    Profile Details
+                  </h4>
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs">
+                    <div>
+                      <span className="block text-[9px] font-bold text-muted-text uppercase">Full Name / Owner</span>
+                      <span className="font-bold text-foreground">{selectedUser.name}</span>
+                    </div>
+                    {selectedUser.companyName && (
+                      <div>
+                        <span className="block text-[9px] font-bold text-muted-text uppercase">Company/Firm Name</span>
+                        <span className="font-bold text-foreground">{selectedUser.companyName}</span>
+                      </div>
+                    )}
+                    <div>
+                      <span className="block text-[9px] font-bold text-muted-text uppercase">Email Address</span>
+                      <span className="font-medium text-foreground flex items-center gap-1 truncate">
+                        <Mail className="w-3 h-3 text-muted-text shrink-0" />
+                        <span className="truncate">{selectedUser.email}</span>
+                      </span>
+                    </div>
+                    <div>
+                      <span className="block text-[9px] font-bold text-muted-text uppercase">Phone Number</span>
+                      <span className="font-bold text-foreground flex items-center gap-1">
+                        <Phone className="w-3 h-3 text-muted-text" />
+                        {selectedUser.phone || "N/A"}
+                      </span>
+                    </div>
+                    {selectedUser.cnic && (
+                      <div className="col-span-2">
+                        <span className="block text-[9px] font-bold text-muted-text uppercase">CNIC (ID Card) Number</span>
+                        <span className="font-mono font-bold text-foreground flex items-center gap-1.5 bg-muted-bg px-2.5 py-1 rounded w-fit mt-1 border border-border-base/55">
+                          <FileText className="w-3.5 h-3.5 text-gold" />
+                          {selectedUser.cnic}
+                        </span>
+                      </div>
+                    )}
+                    {selectedUser.ntn && (
+                      <div className="col-span-2">
+                        <span className="block text-[9px] font-bold text-muted-text uppercase">NTN (National Tax Number)</span>
+                        <span className="font-mono font-bold text-foreground flex items-center gap-1.5 bg-muted-bg px-2.5 py-1 rounded w-fit mt-1 border border-border-base/55">
+                          <FileText className="w-3.5 h-3.5 text-gold" />
+                          {selectedUser.ntn}
+                        </span>
+                      </div>
+                    )}
+                  </div>
+                </div>
+
+                {/* ID Card Images Section */}
+                <div className="p-4 rounded-xl border border-border-base/60 bg-muted-bg/10 space-y-3.5">
+                  <h4 className="text-[11px] font-black uppercase text-gold tracking-widest border-b border-border-base/30 pb-1.5">
+                    Uploaded Identity verification Documents
+                  </h4>
+                  
+                  {(selectedUser.idCardFront || selectedUser.idCardBack) ? (
+                    <div className="grid grid-cols-2 gap-4">
+                      {selectedUser.idCardFront && (
+                        <div className="space-y-1">
+                          <span className="text-[9px] font-black text-muted-text uppercase tracking-wider block text-center">Front View</span>
+                          <div className="border border-border-base rounded-xl overflow-hidden bg-black/25 aspect-[1.58/1] relative group cursor-pointer hover:border-gold/50 transition-colors">
+                            {/* eslint-disable-next-line @next/next/no-img-element */}
+                            <img 
+                              src={selectedUser.idCardFront} 
+                              alt="Front ID Card" 
+                              className="w-full h-full object-cover transition-transform group-hover:scale-105" 
+                              onClick={() => {
+                                const w = window.open();
+                                w?.document.write(`<img src="${selectedUser.idCardFront}" style="max-width:100%; max-height:100vh; display:block; margin:auto;" />`);
+                              }}
+                            />
+                          </div>
+                        </div>
+                      )}
+                      {selectedUser.idCardBack && (
+                        <div className="space-y-1">
+                          <span className="text-[9px] font-black text-muted-text uppercase tracking-wider block text-center">Back View</span>
+                          <div className="border border-border-base rounded-xl overflow-hidden bg-black/25 aspect-[1.58/1] relative group cursor-pointer hover:border-gold/50 transition-colors">
+                            {/* eslint-disable-next-line @next/next/no-img-element */}
+                            <img 
+                              src={selectedUser.idCardBack} 
+                              alt="Back ID Card" 
+                              className="w-full h-full object-cover transition-transform group-hover:scale-105" 
+                              onClick={() => {
+                                const w = window.open();
+                                w?.document.write(`<img src="${selectedUser.idCardBack}" style="max-width:100%; max-height:100vh; display:block; margin:auto;" />`);
+                              }}
+                            />
+                          </div>
+                        </div>
+                      )}
+                    </div>
+                  ) : (
+                    <div className="py-6 text-center text-xs text-muted-text bg-muted-bg/30 border border-dashed border-border-base/50 rounded-xl">
+                      No verification documents uploaded.
+                    </div>
+                  )}
+                </div>
+              </div>
+
+              {/* Right Column: Uploaded Listings list */}
+              <div className="flex flex-col h-[400px] border border-border-base/60 bg-muted-bg/5 rounded-xl p-4 overflow-hidden">
+                <h4 className="text-[11px] font-black uppercase text-gold tracking-widest border-b border-border-base/30 pb-1.5 mb-3 shrink-0">
+                  Property Listings Directory
+                </h4>
+                
+                <div className="flex-1 overflow-y-auto space-y-3 pr-1">
+                  {(() => {
+                    const userListings = properties.filter((p) => {
+                      if (selectedUser.role === "Agency") {
+                        return (
+                          (selectedUser.companyName && p.contactDetails?.agencyName?.toLowerCase() === selectedUser.companyName.toLowerCase()) ||
+                          p.agent.name.toLowerCase() === selectedUser.name.toLowerCase() ||
+                          p.contactDetails?.name?.toLowerCase() === selectedUser.name.toLowerCase()
+                        );
+                      }
+                      return (
+                        p.agent.name.toLowerCase() === selectedUser.name.toLowerCase() ||
+                        p.contactDetails?.name?.toLowerCase() === selectedUser.name.toLowerCase()
+                      );
+                    });
+
+                    if (userListings.length === 0) {
+                      return (
+                        <div className="h-full flex flex-col items-center justify-center text-center text-muted-text space-y-2 py-10">
+                          <Building2 className="w-8 h-8 text-muted-text/50" />
+                          <p className="text-xs">No property listings uploaded by this account.</p>
+                        </div>
+                      );
+                    }
+
+                    return userListings.map((prop) => (
+                      <div key={prop.id} className="flex items-center justify-between p-2 rounded-lg bg-muted-bg/40 border border-border-base/35 hover:bg-muted-bg/70 transition-colors gap-3">
+                        <div className="flex items-center space-x-3 min-w-0">
+                          <div className="w-12 h-10 rounded overflow-hidden border border-border-base shrink-0 bg-black/10">
+                            {/* eslint-disable-next-line @next/next/no-img-element */}
+                            <img src={prop.images?.[0] || "https://images.unsplash.com/photo-1500382017468-9049fed747ef?auto=format&fit=crop&w=600&q=80"} alt={prop.title} className="w-full h-full object-cover" />
+                          </div>
+                          <div className="min-w-0">
+                            <h5 className="text-[11px] font-black truncate text-foreground leading-tight" title={prop.title}>{prop.title}</h5>
+                            <p className="text-[10px] text-muted-text truncate mt-0.5">{prop.location}</p>
+                            <p className="text-[9px] text-gold font-bold mt-0.5">
+                              PKR {prop.price >= 10000000 ? `${(prop.price / 10000000).toFixed(2)} Crore` : `${(prop.price / 100000).toFixed(1)} Lakh`}
+                            </p>
+                          </div>
+                        </div>
+                        <div className="text-right shrink-0 flex flex-col items-end gap-1">
+                          <div className="flex gap-1 items-center">
+                            <span className={`px-1.5 py-0.5 text-[8px] font-bold uppercase rounded text-white ${
+                              prop.purpose === "Buy" ? "bg-royal" : prop.purpose === "Rent" ? "bg-amber-600" : "bg-emerald-600"
+                            }`}>
+                              {prop.purpose}
+                            </span>
+                            {prop.isHot && (
+                              <span className="px-1 py-0.5 text-[8px] font-bold uppercase rounded bg-rose-600 text-white flex items-center gap-0.5">
+                                <Flame className="w-2.5 h-2.5 fill-white text-white" />
+                                <span>HOT</span>
+                              </span>
+                            )}
+                          </div>
+                          
+                          <div className="text-[9px] text-muted-text font-medium flex items-center gap-1">
+                            <Calendar className="w-2.5 h-2.5" />
+                            <span>{prop.createdAt || "2026-07-20"}</span>
+                          </div>
+                          
+                          <a 
+                            href={`/properties/${prop.id}`} 
+                            target="_blank" 
+                            rel="noopener noreferrer"
+                            className="text-[9px] font-black text-royal dark:text-white flex items-center space-x-0.5 hover:underline cursor-pointer"
+                          >
+                            <span>Inspect</span>
+                            <ExternalLink className="w-2.5 h-2.5" />
+                          </a>
+                        </div>
+                      </div>
+                    ));
+                  })()}
+                </div>
+              </div>
+
+            </div>
+
+            {/* Footer buttons */}
+            <div className="flex justify-end space-x-3 pt-6 border-t border-border-base/50 mt-6">
+              
+              {/* Approve button inside modal if pending */}
+              {selectedUser.status === "Pending" && (
+                <button
+                  type="button"
+                  onClick={() => {
+                    updateUserStatus(selectedUser.id, "Active");
+                    setSelectedUser({ ...selectedUser, status: "Active" });
+                    alert(`User "${selectedUser.name}" has been approved successfully.`);
+                  }}
+                  className="py-2 px-4 bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs rounded-lg flex items-center space-x-1 cursor-pointer transition-colors shadow-md"
+                >
+                  <UserCheck className="w-4 h-4" />
+                  <span>Approve Account</span>
+                </button>
+              )}
+
+              <button
+                type="button"
+                onClick={() => setSelectedUser(null)}
+                className="px-5 py-2 bg-muted-bg border border-border-base rounded-lg text-xs font-bold text-foreground hover:bg-border-base transition-colors"
+              >
+                Close Details
+              </button>
+            </div>
 
           </div>
         </div>

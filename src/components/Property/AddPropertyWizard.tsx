@@ -23,7 +23,8 @@ import {
   ChevronLeft,
   Building2,
   Trash2,
-  Lock
+  Lock,
+  Flame
 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 
@@ -97,6 +98,7 @@ interface AddPropertyWizardProps {
 
 export default function AddPropertyWizard({ onSuccess }: AddPropertyWizardProps) {
   const { addProperty, userSession } = useAppState();
+  const isPremiumAgency = (userSession.role === "Agency" && userSession.plan === "Pro") || userSession.role === "Admin";
   const [step, setStep] = useState(1);
   const [validationError, setValidationError] = useState<string | null>(null);
 
@@ -128,6 +130,7 @@ export default function AddPropertyWizard({ onSuccess }: AddPropertyWizardProps)
   const [isCorner, setIsCorner] = useState(false);
   const [isParkFacing, setIsParkFacing] = useState(false);
   const [isMainBoulevard, setIsMainBoulevard] = useState(false);
+  const [isHot, setIsHot] = useState(false);
   const [selectedAmenities, setSelectedAmenities] = useState<string[]>([
     "Sui Gas",
     "Underground Electricity",
@@ -508,6 +511,7 @@ export default function AddPropertyWizard({ onSuccess }: AddPropertyWizardProps)
         isCorner,
         isParkFacing,
         isMainBoulevard,
+        isHot,
         possessionStatus,
         installmentAvailable,
         installmentDetails: installmentAvailable ? {
@@ -1025,6 +1029,42 @@ export default function AddPropertyWizard({ onSuccess }: AddPropertyWizardProps)
                           <input type="checkbox" checked={isMainBoulevard} onChange={e => setIsMainBoulevard(e.target.checked)} className="rounded accent-gold text-white" />
                           <span>Main Boulevard</span>
                         </label>
+                      </div>
+
+                      {/* Hot Listing Option for Premium Paid Agencies */}
+                      <div className="col-span-3 pt-4 border-t border-border-base/50">
+                        <div className="flex flex-col sm:flex-row sm:items-center justify-between p-4 rounded-xl border border-rose-500/20 bg-rose-500/5 backdrop-blur-sm gap-4">
+                          <div className="flex items-start space-x-3">
+                            <div className="p-2 bg-rose-500/10 rounded-lg border border-rose-500/20 mt-0.5">
+                              <Flame className="w-5 h-5 text-rose-500 fill-rose-500 animate-pulse" />
+                            </div>
+                            <div>
+                              <h4 className="text-xs font-black text-foreground flex items-center gap-1.5">
+                                Hot Listing Option
+                                <span className="text-[9px] font-bold uppercase bg-rose-600 text-white px-1.5 py-0.5 rounded tracking-wider">Exclusive</span>
+                              </h4>
+                              <p className="text-[10px] text-muted-text mt-0.5">
+                                Mark this property as a Hot Listing to pin it with a high-visibility badge and rank it at the top of the directory.
+                              </p>
+                            </div>
+                          </div>
+                          
+                          {isPremiumAgency ? (
+                            <label className="relative inline-flex items-center cursor-pointer select-none">
+                              <input 
+                                type="checkbox" 
+                                checked={isHot} 
+                                onChange={(e) => setIsHot(e.target.checked)} 
+                                className="sr-only peer" 
+                              />
+                              <div className="w-9 h-5 bg-border-base peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-rose-600"></div>
+                            </label>
+                          ) : (
+                            <div className="flex items-center gap-1 text-[10px] font-bold text-rose-500 bg-rose-500/10 px-2.5 py-1 rounded-lg border border-rose-500/20 shrink-0 self-start sm:self-center">
+                              <Lock className="w-3 h-3" /> Premium Agencies Only
+                            </div>
+                          )}
+                        </div>
                       </div>
 
                       {/* Amenities Selection Checkbox Grid */}

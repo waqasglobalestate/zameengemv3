@@ -98,6 +98,8 @@ export interface UserRecord {
   companyName?: string;
   password?: string;
   image?: string;
+  idCardFront?: string;
+  idCardBack?: string;
 }
 
 export interface AgencyRecord {
@@ -791,7 +793,8 @@ export function AppStateProvider({ children }: { children: React.ReactNode }) {
     const propertyWithId: Property = {
       ...newProp,
       id: `prop-${Date.now()}`,
-      viewsCount: Math.floor(Math.random() * 30) + 18
+      viewsCount: Math.floor(Math.random() * 30) + 18,
+      createdAt: new Date().toISOString().split("T")[0]
     };
     const updatedListings = [propertyWithId, ...properties];
     setProperties(updatedListings);

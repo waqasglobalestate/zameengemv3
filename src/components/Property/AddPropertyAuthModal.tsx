@@ -126,8 +126,8 @@ export default function AddPropertyAuthModal({ isOpen, onClose }: AddPropertyAut
   // Clean previews on unmount
   useEffect(() => {
     return () => {
-      if (idFrontPreview) URL.revokeObjectURL(idFrontPreview);
-      if (idBackPreview) URL.revokeObjectURL(idBackPreview);
+      if (idFrontPreview && idFrontPreview.startsWith("blob:")) URL.revokeObjectURL(idFrontPreview);
+      if (idBackPreview && idBackPreview.startsWith("blob:")) URL.revokeObjectURL(idBackPreview);
     };
   }, [idFrontPreview, idBackPreview]);
 
@@ -180,11 +180,19 @@ export default function AddPropertyAuthModal({ isOpen, onClose }: AddPropertyAut
 
     if (side === "front") {
       setIdFrontFile(file);
-      setIdFrontPreview(URL.createObjectURL(file));
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        setIdFrontPreview(reader.result as string);
+      };
+      reader.readAsDataURL(file);
       simulateUpload("front");
     } else if (side === "back") {
       setIdBackFile(file);
-      setIdBackPreview(URL.createObjectURL(file));
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        setIdBackPreview(reader.result as string);
+      };
+      reader.readAsDataURL(file);
       simulateUpload("back");
     } else {
       setAvatarFile(file);
@@ -367,7 +375,9 @@ export default function AddPropertyAuthModal({ isOpen, onClose }: AddPropertyAut
         cnic: selectedType === "agent" ? idCardNumber : undefined,
         ntn: selectedType === "agency" ? ntnNumber : undefined,
         companyName: selectedType === "agency" ? agencyNameInput : undefined,
-        image: avatarPreview || undefined
+        image: avatarPreview || undefined,
+        idCardFront: idFrontPreview || undefined,
+        idCardBack: idBackPreview || undefined
       });
 
       if (userRole === "Agent") {
