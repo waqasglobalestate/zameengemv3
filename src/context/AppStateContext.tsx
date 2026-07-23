@@ -3,7 +3,7 @@
 import React, { createContext, useContext, useState, useEffect } from "react";
 import { Property, initialProperties } from "@/data/initialProperties";
 import { BlogPost, initialBlogs } from "@/data/initialBlogs";
-import { getProperties, insertSupabaseProperty } from "@/utils/supabaseService";
+import { getProperties, insertSupabaseProperty, insertUserRegistration, getUserRegistrations, updateUserRegistrationStatus } from "@/utils/supabaseService";
 import { supabase } from "@/utils/supabaseClient";
 
 export type UserRole = "Buyer" | "Seller" | "Agent" | "Agency" | "Admin";
@@ -488,6 +488,72 @@ export function AppStateProvider({ children }: { children: React.ReactNode }) {
           setAds([]);
           localStorage.setItem("gem-ads", JSON.stringify([]));
         }
+
+        // Sync Live Account Registrations from Supabase Cloud DB for Super Admin approvals
+        getUserRegistrations().then((dbRegs) => {
+          if (dbRegs && dbRegs.length > 0) {
+            setUsers((prevUsers) => {
+              let updatedUsers = [...prevUsers];
+              let hasChanges = false;
+              dbRegs.forEach((reg) => {
+                const existingIdx = updatedUsers.findIndex(u => u.email.toLowerCase() === reg.email.toLowerCase());
+                const regStatus = (reg.status as "Active" | "Pending" | "Suspended") || "Pending";
+                const regRole = (reg.role as UserRole) || "Agent";
+                if (existingIdx === -1) {
+                  updatedUsers.push({
+                    id: `usr-db-${reg.id || Date.now()}`,
+                    name: reg.name,
+                    email: reg.email,
+                    role: regRole,
+                    phone: reg.phone || undefined,
+                    cnic: reg.cnic || undefined,
+                    ntn: reg.ntn || undefined,
+                    companyName: reg.company_name || undefined,
+                    status: regStatus,
+                    dateJoined: reg.created_at ? reg.created_at.split("T")[0] : new Date().toISOString().split("T")[0]
+                  });
+                  hasChanges = true;
+                } else if (updatedUsers[existingIdx].status !== regStatus) {
+                  updatedUsers[existingIdx] = { ...updatedUsers[existingIdx], status: regStatus };
+                  hasChanges = true;
+                }
+              });
+              if (hasChanges) {
+                saveState("gem-users", updatedUsers);
+              }
+              return hasChanges ? updatedUsers : prevUsers;
+            });
+
+            setAgencies((prevAgencies) => {
+              let updatedAgencies = [...prevAgencies];
+              let hasChanges = false;
+              dbRegs.filter(r => r.role === "Agency").forEach((reg) => {
+                const existingIdx = updatedAgencies.findIndex(a => a.email.toLowerCase() === reg.email.toLowerCase());
+                const regStatus = (reg.status as "Active" | "Pending" | "Suspended") || "Pending";
+                if (existingIdx === -1) {
+                  updatedAgencies.push({
+                    id: `agency-db-${reg.id || Date.now()}`,
+                    name: reg.company_name || reg.name,
+                    logo: `https://ui-avatars.com/api/?name=${encodeURIComponent(reg.company_name || reg.name)}&background=c5a85c&color=fff`,
+                    agentsCount: 0,
+                    listingsCount: 0,
+                    phone: reg.phone || "",
+                    email: reg.email,
+                    status: regStatus
+                  });
+                  hasChanges = true;
+                } else if (updatedAgencies[existingIdx].status !== regStatus) {
+                  updatedAgencies[existingIdx] = { ...updatedAgencies[existingIdx], status: regStatus };
+                  hasChanges = true;
+                }
+              });
+              if (hasChanges) {
+                saveState("gem-agencies", updatedAgencies);
+              }
+              return hasChanges ? updatedAgencies : prevAgencies;
+            });
+          }
+        }).catch((err) => console.warn("Error syncing user_registrations from Supabase:", err));
 
       } catch (e) {
         console.error("Failed to load local storage state", e);
@@ -996,6 +1062,18 @@ export function AppStateProvider({ children }: { children: React.ReactNode }) {
         saveState("gem-leads", updated);
         return updated;
       });
+
+      // Insert registration into Supabase Cloud DB for live Super Admin approvals across all devices
+      insertUserRegistration({
+        name: newUser.name,
+        email: newUser.email,
+        phone: newUser.phone,
+        role: newUser.role,
+        company_name: newUser.companyName,
+        cnic: newUser.cnic,
+        ntn: newUser.ntn,
+        status: status
+      });
     }
   };
 
@@ -1009,6 +1087,11 @@ export function AppStateProvider({ children }: { children: React.ReactNode }) {
 
   const updateUserStatus = (id: string, status: "Active" | "Suspended" | "Pending") => {
     setUsers((prev) => {
+      const targetUser = prev.find((u) => u.id === id);
+      if (targetUser) {
+        updateUserRegistrationStatus(targetUser.email, status);
+      }
+
       const updated = prev.map((u) => {
         if (u.id === id) {
           // If the updated user is the current logged-in user, update userSession too!
@@ -1041,6 +1124,9 @@ export function AppStateProvider({ children }: { children: React.ReactNode }) {
   const deleteUser = (id: string) => {
     setUsers((prev) => {
       const targetUser = prev.find((u) => u.id === id);
+      if (targetUser) {
+        updateUserRegistrationStatus(targetUser.email, "Rejected");
+      }
       const updated = prev.filter((u) => u.id !== id);
       saveState("gem-users", updated);
 

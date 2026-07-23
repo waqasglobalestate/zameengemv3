@@ -246,3 +246,84 @@ export async function uploadPropertyMedia(file: Blob, path: string): Promise<str
 
   return publicUrlData.publicUrl;
 }
+
+export interface UserRegistrationRecord {
+  id?: string;
+  name: string;
+  email: string;
+  phone?: string;
+  role: string;
+  company_name?: string;
+  cnic?: string;
+  ntn?: string;
+  status?: "Pending" | "Active" | "Rejected" | "Suspended";
+  created_at?: string;
+}
+
+/**
+ * Inserts or updates a user registration request in Supabase Cloud DB.
+ */
+export async function insertUserRegistration(userData: UserRegistrationRecord): Promise<void> {
+  try {
+    const { error } = await supabase.from("user_registrations").upsert(
+      [
+        {
+          name: userData.name,
+          email: userData.email.toLowerCase(),
+          phone: userData.phone || null,
+          role: userData.role,
+          company_name: userData.company_name || null,
+          cnic: userData.cnic || null,
+          ntn: userData.ntn || null,
+          status: userData.status || "Pending",
+        },
+      ],
+      { onConflict: "email" }
+    );
+    if (error) {
+      console.warn("Supabase user_registrations insert error:", error);
+    }
+  } catch (err) {
+    console.warn("Supabase user_registrations insert exception:", err);
+  }
+}
+
+/**
+ * Fetches all user registrations from Supabase Cloud DB.
+ */
+export async function getUserRegistrations(): Promise<UserRegistrationRecord[]> {
+  try {
+    const { data, error } = await supabase
+      .from("user_registrations")
+      .select("*")
+      .order("created_at", { ascending: false });
+
+    if (error) {
+      console.warn("Supabase user_registrations fetch error:", error);
+      return [];
+    }
+    return data || [];
+  } catch (err) {
+    console.warn("Supabase user_registrations fetch exception:", err);
+    return [];
+  }
+}
+
+/**
+ * Updates a user registration status in Supabase Cloud DB.
+ */
+export async function updateUserRegistrationStatus(email: string, status: string): Promise<void> {
+  try {
+    const { error } = await supabase
+      .from("user_registrations")
+      .update({ status: status })
+      .eq("email", email.toLowerCase());
+
+    if (error) {
+      console.warn("Supabase user_registrations status update error:", error);
+    }
+  } catch (err) {
+    console.warn("Supabase user_registrations status update exception:", err);
+  }
+}
+
