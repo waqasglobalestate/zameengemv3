@@ -19,14 +19,6 @@ export default function PropertyCard({ property, onCompareToggle, isComparing = 
 
   const isSaved = savedProperties.includes(property.id);
 
-  // Auto record visitor impression on card render
-  useEffect(() => {
-    const timer = setTimeout(() => {
-      incrementViews(property.id);
-    }, 1500);
-    return () => clearTimeout(timer);
-  }, [property.id]);
-
   // Format price into local notation (Lakhs / Crore)
   const formatPrice = (priceVal: number) => {
     if (priceVal >= 10000000) {

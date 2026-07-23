@@ -163,6 +163,8 @@ export default function HomePage() {
             <img
               src={img}
               alt="Luxury Real Estate Showcase"
+              loading={index === 0 ? "eager" : "lazy"}
+              decoding="async"
               className="w-full h-full object-cover scale-105 transition-transform duration-[6000ms] ease-out"
               style={{ transform: index === activeSlide ? "scale(1)" : "scale(1.05)" }}
             />

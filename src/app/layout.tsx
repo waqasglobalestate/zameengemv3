@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { Outfit } from "next/font/google";
 import "./globals.css";
 import { AppStateProvider } from "@/context/AppStateContext";
 import Header from "@/components/Layout/Header";
@@ -7,6 +8,13 @@ import FloatingActions from "@/components/Layout/FloatingActions";
 import AIAssistant from "@/components/AI/AIAssistant";
 import AuthModalContainer from "@/components/Property/AuthModalContainer";
 import Script from "next/script";
+
+const outfit = Outfit({
+  subsets: ["latin"],
+  weight: ["300", "400", "500", "600", "700", "800"],
+  display: "swap",
+  variable: "--font-outfit",
+});
 
 export const metadata: Metadata = {
   title: "Zameen Gem | Premier Property Advisors",
@@ -29,8 +37,13 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en" className="h-full scroll-smooth" suppressHydrationWarning>
-      <body className="font-sans min-h-full flex flex-col antialiased" suppressHydrationWarning>
+    <html lang="en" className={`h-full scroll-smooth ${outfit.variable} overflow-x-hidden max-w-full`} suppressHydrationWarning>
+      <head>
+        <link rel="preconnect" href="https://lstitpmfaupnxzrbojpq.supabase.co" />
+        <link rel="preconnect" href="https://images.unsplash.com" />
+        <link rel="dns-prefetch" href="https://images.unsplash.com" />
+      </head>
+      <body className="font-sans min-h-full flex flex-col antialiased overflow-x-hidden max-w-full" suppressHydrationWarning>
         {process.env.NODE_ENV === "development" && (
           <Script
             id="suppress-hydration-errors"
@@ -64,7 +77,7 @@ export default function RootLayout({
         )}
         <AppStateProvider>
           <Header />
-          <main className="flex-grow">
+          <main className="flex-grow w-full max-w-full overflow-x-hidden">
             {children}
           </main>
           <Footer />

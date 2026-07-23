@@ -327,3 +327,29 @@ export async function updateUserRegistrationStatus(email: string, status: string
   }
 }
 
+/**
+ * Increments the views count for a property in Supabase Cloud DB.
+ */
+export async function incrementPropertyViews(propertyId: string): Promise<void> {
+  try {
+    if (!propertyId || propertyId.startsWith("prop-")) return;
+
+    const { data: currentProp } = await supabase
+      .from("properties")
+      .select("views_count")
+      .eq("id", propertyId)
+      .single();
+
+    if (currentProp) {
+      const newCount = (currentProp.views_count || 0) + 1;
+      await supabase
+        .from("properties")
+        .update({ views_count: newCount })
+        .eq("id", propertyId);
+    }
+  } catch (err) {
+    console.warn("Supabase property views_count increment error:", err);
+  }
+}
+
+

@@ -3,7 +3,7 @@
 import React, { createContext, useContext, useState, useEffect } from "react";
 import { Property, initialProperties } from "@/data/initialProperties";
 import { BlogPost, initialBlogs } from "@/data/initialBlogs";
-import { getProperties, insertSupabaseProperty, insertUserRegistration, getUserRegistrations, updateUserRegistrationStatus } from "@/utils/supabaseService";
+import { getProperties, insertSupabaseProperty, insertUserRegistration, getUserRegistrations, updateUserRegistrationStatus, incrementPropertyViews } from "@/utils/supabaseService";
 import { supabase } from "@/utils/supabaseClient";
 
 export type UserRole = "Buyer" | "Seller" | "Agent" | "Agency" | "Admin";
@@ -246,35 +246,28 @@ export function AppStateProvider({ children }: { children: React.ReactNode }) {
             viewsCount: (p.viewsCount && p.viewsCount > 0) ? p.viewsCount : Math.floor(Math.random() * 45) + 25
           }));
 
+        // Instant synchronous hydration for 0ms page render on slow connections
+        const storedProperties = localStorage.getItem("gem-properties");
+        if (storedProperties) {
+          try {
+            const clean = ensureMinViews(JSON.parse(storedProperties).filter((p: Property) => !p.id.startsWith("prop-")));
+            setProperties(clean);
+          } catch (err) {
+            console.warn("Failed to parse cached properties", err);
+          }
+        }
+
+        // Asynchronous non-blocking fetch from Supabase
         getProperties()
           .then((dbProps) => {
             if (dbProps && dbProps.length > 0) {
               const clean = ensureMinViews(dbProps.filter((p: Property) => !p.id.startsWith("prop-")));
               setProperties(clean);
               localStorage.setItem("gem-properties", JSON.stringify(clean));
-            } else {
-              const storedProperties = localStorage.getItem("gem-properties");
-              if (storedProperties) {
-                const clean = ensureMinViews(JSON.parse(storedProperties).filter((p: Property) => !p.id.startsWith("prop-")));
-                setProperties(clean);
-                localStorage.setItem("gem-properties", JSON.stringify(clean));
-              } else {
-                setProperties([]);
-                localStorage.setItem("gem-properties", JSON.stringify([]));
-              }
             }
           })
           .catch((err) => {
-            console.warn("Supabase fetch properties failed, using localStorage:", err);
-            const storedProperties = localStorage.getItem("gem-properties");
-            if (storedProperties) {
-              const clean = ensureMinViews(JSON.parse(storedProperties).filter((p: Property) => !p.id.startsWith("prop-")));
-              setProperties(clean);
-              localStorage.setItem("gem-properties", JSON.stringify(clean));
-            } else {
-              setProperties([]);
-              localStorage.setItem("gem-properties", JSON.stringify([]));
-            }
+            console.warn("Supabase fetch properties failed, using cached state:", err);
           });
 
         const storedBlogs = localStorage.getItem("gem-blogs");
@@ -965,6 +958,20 @@ export function AppStateProvider({ children }: { children: React.ReactNode }) {
   };
 
   const incrementViews = (id: string) => {
+    if (typeof window === "undefined" || !id) return;
+    
+    // Per-visitor unique session tracking: Prevent incrementing on every click or refresh
+    const sessionKey = `gem-viewed-${id}`;
+    if (sessionStorage.getItem(sessionKey)) {
+      return; // Already counted for this visitor session!
+    }
+    
+    try {
+      sessionStorage.setItem(sessionKey, "true");
+    } catch (e) {
+      // Storage quota or restriction fallback
+    }
+
     setProperties((prev) => {
       const updatedListings = prev.map((p) =>
         p.id === id ? { ...p, viewsCount: (p.viewsCount || 0) + 1 } : p
@@ -972,6 +979,9 @@ export function AppStateProvider({ children }: { children: React.ReactNode }) {
       saveState("gem-properties", updatedListings);
       return updatedListings;
     });
+
+    // Sync view count increment to Supabase Cloud DB
+    incrementPropertyViews(id);
   };
 
   const addAgent = (newAgent: Omit<Agent, "id">) => {
