@@ -1173,10 +1173,24 @@ export function AppStateProvider({ children }: { children: React.ReactNode }) {
       saveState("gem-agencies", updated);
       return updated;
     });
+
+    insertUserRegistration({
+      name: newAgency.name,
+      email: newAgency.email,
+      phone: newAgency.phone,
+      role: "Agency",
+      company_name: newAgency.name,
+      status: newAgency.status || "Pending"
+    });
   };
 
   const updateAgencyStatus = (id: string, status: "Active" | "Pending" | "Suspended") => {
     setAgencies((prev) => {
+      const targetAgency = prev.find((a) => a.id === id);
+      if (targetAgency) {
+        updateUserRegistrationStatus(targetAgency.email, status);
+      }
+
       const updated = prev.map((a) => {
         if (a.id === id) {
           // If the updated agency corresponds to the current logged-in agency, update userSession!
@@ -1188,9 +1202,13 @@ export function AppStateProvider({ children }: { children: React.ReactNode }) {
           
           // Automatically sync status to the corresponding UserRecord in users list
           setUsers((prevUsers) => {
-            const updatedUsers = prevUsers.map((u) => 
-              u.email.toLowerCase() === a.email.toLowerCase() ? { ...u, status } : u
-            );
+            const updatedUsers = prevUsers.map((u) => {
+              if (u.email.toLowerCase() === a.email.toLowerCase()) {
+                updateUserRegistrationStatus(u.email, status);
+                return { ...u, status };
+              }
+              return u;
+            });
             saveState("gem-users", updatedUsers);
             return updatedUsers;
           });
@@ -1207,6 +1225,9 @@ export function AppStateProvider({ children }: { children: React.ReactNode }) {
   const deleteAgency = (id: string) => {
     setAgencies((prev) => {
       const target = prev.find(a => a.id === id);
+      if (target) {
+        updateUserRegistrationStatus(target.email, "Rejected");
+      }
       const updated = prev.filter((a) => a.id !== id);
       saveState("gem-agencies", updated);
       if (target) {
