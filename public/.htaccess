@@ -1,0 +1,42 @@
+# Disable directory indexing
+Options -Indexes
+
+# Ensure Hostinger / LiteSpeed / Apache serves static assets in _next and .next
+<IfModule mod_rewrite.c>
+  RewriteEngine On
+
+  # Direct static chunk requests to _next/static if present
+  RewriteCond %{REQUEST_URI} ^/_next/static/(.*)$
+  RewriteCond %{DOCUMENT_ROOT}/_next/static/%1 -f
+  RewriteRule ^_next/static/(.*)$ _next/static/$1 [L]
+
+  # Direct static chunk requests to .next/static if present
+  RewriteCond %{REQUEST_URI} ^/_next/static/(.*)$
+  RewriteCond %{DOCUMENT_ROOT}/.next/static/%1 -f
+  RewriteRule ^_next/static/(.*)$ .next/static/$1 [L]
+</IfModule>
+
+# Enable CORS for static assets if needed
+<IfModule mod_headers.c>
+  Header set Access-Control-Allow-Origin "*"
+</IfModule>
+
+# Ensure proper MIME types for Next.js assets
+<IfModule mod_mime.c>
+  AddType text/css .css
+  AddType application/javascript .js .mjs
+  AddType application/json .json
+  AddType image/svg+xml .svg
+  AddType image/webp .webp
+  AddType image/avif .avif
+</IfModule>
+
+# Enable Browser Caching for static assets
+<IfModule mod_expires.c>
+  ExpiresActive On
+  ExpiresByType text/css "access plus 1 year"
+  ExpiresByType application/javascript "access plus 1 year"
+  ExpiresByType image/png "access plus 1 year"
+  ExpiresByType image/jpeg "access plus 1 year"
+  ExpiresByType image/webp "access plus 1 year"
+</IfModule>

@@ -28,12 +28,13 @@ jobs:
           NEXT_PUBLIC_SUPABASE_ANON_KEY: ${{ secrets.NEXT_PUBLIC_SUPABASE_ANON_KEY }}
         run: |
           npm run build
-          rm -rf _next
-          mkdir -p _next
+          rm -rf _next public/_next
+          mkdir -p _next public/_next
           cp -r .next/static _next/
+          cp -r .next/static public/_next/
 
       - name: Zip Files for Transfer
-        run: zip -r deploy.zip . -x "node_modules/*" ".git/*" ".github/*"
+        run: zip -r deploy.zip . .next _next public -x "node_modules/*" ".git/*" ".github/*"
 
       - name: Upload to Hostinger via SCP
         uses: appleboy/scp-action@v0.1.7
@@ -61,3 +62,6 @@ jobs:
             nvm install 20
             nvm use 20
             npm install --omit=dev
+            mkdir -p tmp
+            touch tmp/restart.txt
+            npx pm2 restart all || true
