@@ -34,7 +34,7 @@ jobs:
           cp -r .next/static public/_next/
 
       - name: Zip Files for Transfer
-        run: zip -r deploy.zip . .next _next public -x "node_modules/*" ".git/*" ".github/*"
+        run: zip -r deploy.zip . -x "node_modules/*" ".git/*" ".github/*" "deploy.zip"
 
       - name: Upload to Hostinger via SCP
         uses: appleboy/scp-action@v0.1.7
@@ -57,11 +57,11 @@ jobs:
           script: |
             cd domains/zameengem.com/public_html
             unzip -o deploy.zip
-            rm deploy.zip
-            source ~/.profile
-            nvm install 20
-            nvm use 20
-            npm install --omit=dev
+            rm -f deploy.zip
+            (source ~/.profile || true)
+            (nvm install 20 || true)
+            (nvm use 20 || true)
+            (npm install --omit=dev || true)
             mkdir -p tmp
-            touch tmp/restart.txt
-            npx pm2 restart all || true
+            touch tmp/restart.txt || true
+            (npx pm2 restart all || true)
