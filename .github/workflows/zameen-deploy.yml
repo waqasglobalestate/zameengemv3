@@ -28,10 +28,12 @@ jobs:
           NEXT_PUBLIC_SUPABASE_ANON_KEY: ${{ secrets.NEXT_PUBLIC_SUPABASE_ANON_KEY }}
         run: |
           npm run build
-          rm -rf _next public/_next
-          mkdir -p _next public/_next
-          cp -r .next/static _next/
-          cp -r .next/static public/_next/
+          rm -rf _next public/_next static public/static
+          mkdir -p _next public/_next static public/static
+          cp -r .next/static/* _next/
+          cp -r .next/static/* public/_next/
+          cp -r .next/static/* static/
+          cp -r .next/static/* public/static/
 
       - name: Zip Files for Transfer
         run: zip -r deploy.zip . -x "node_modules/*" ".git/*" ".github/*" "deploy.zip"
@@ -58,6 +60,9 @@ jobs:
             cd domains/zameengem.com/public_html
             unzip -o deploy.zip
             rm -f deploy.zip
+            chmod -R 755 .
+            find . -type f -exec chmod 644 {} + 2>/dev/null || true
+            chmod -R 755 _next .next public static 2>/dev/null || true
             (source ~/.profile || true)
             (nvm install 20 || true)
             (nvm use 20 || true)
