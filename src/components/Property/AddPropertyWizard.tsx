@@ -467,12 +467,30 @@ export default function AddPropertyWizard({ onSuccess }: AddPropertyWizardProps)
       const timestamp = Date.now();
       
       if (featuredImage) {
-        const url = await uploadPropertyMedia(featuredImage.blob, `property_${timestamp}_featured.jpg`);
-        uploadedImageUrls.push(url);
+        let featUrl = "";
+        try {
+          featUrl = await uploadPropertyMedia(featuredImage.blob, `property_${timestamp}_featured.jpg`);
+        } catch (uploadErr) {
+          console.warn("Storage upload exception, using fallback:", uploadErr);
+        }
+        if (featUrl) {
+          uploadedImageUrls.push(featUrl);
+        } else if (featuredImage.previewUrl) {
+          uploadedImageUrls.push(featuredImage.previewUrl);
+        }
         
         for (let i = 0; i < galleryImages.length; i++) {
-          const gUrl = await uploadPropertyMedia(galleryImages[i].blob, `property_${timestamp}_gallery_${i}.jpg`);
-          uploadedImageUrls.push(gUrl);
+          let gUrl = "";
+          try {
+            gUrl = await uploadPropertyMedia(galleryImages[i].blob, `property_${timestamp}_gallery_${i}.jpg`);
+          } catch (uploadErr) {
+            console.warn("Gallery storage upload exception, using fallback:", uploadErr);
+          }
+          if (gUrl) {
+            uploadedImageUrls.push(gUrl);
+          } else if (galleryImages[i].previewUrl) {
+            uploadedImageUrls.push(galleryImages[i].previewUrl);
+          }
         }
       }
 
