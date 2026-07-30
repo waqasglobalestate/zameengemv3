@@ -386,12 +386,17 @@ export function AppStateProvider({ children }: { children: React.ReactNode }) {
           const storedSession = localStorage.getItem("gem-user-session");
           if (storedSession) {
             const parsed = JSON.parse(storedSession);
-            if (parsed.image && (parsed.image.includes("photo-1519085360753-af0119f7cbe7") || parsed.image === "https://images.unsplash.com/photo-1519085360753-af0119f7cbe7?auto=format&fit=crop&w=300&q=80" || (parsed.image === "/images/waqas_ceo.png" && parsed.role !== "Admin"))) {
-              parsed.image = parsed.role === "Admin" ? "/images/waqas_ceo.png" : `https://ui-avatars.com/api/?name=${encodeURIComponent(parsed.name || "User")}&background=c5a85c&color=fff`;
+            if (parsed.status === "Pending" && parsed.role !== "Admin") {
+              setUserSession(defaultSession);
+              localStorage.setItem("gem-user-session", JSON.stringify(defaultSession));
+            } else {
+              if (parsed.image && (parsed.image.includes("photo-1519085360753-af0119f7cbe7") || parsed.image === "https://images.unsplash.com/photo-1519085360753-af0119f7cbe7?auto=format&fit=crop&w=300&q=80" || (parsed.image === "/images/waqas_ceo.png" && parsed.role !== "Admin"))) {
+                parsed.image = parsed.role === "Admin" ? "/images/waqas_ceo.png" : `https://ui-avatars.com/api/?name=${encodeURIComponent(parsed.name || "User")}&background=c5a85c&color=fff`;
+              }
+              if (!parsed.plan) parsed.plan = "Free";
+              setUserSession(parsed);
               localStorage.setItem("gem-user-session", JSON.stringify(parsed));
             }
-            if (!parsed.plan) parsed.plan = "Free";
-            setUserSession(parsed);
           }
         }
 
@@ -1021,9 +1026,8 @@ export function AppStateProvider({ children }: { children: React.ReactNode }) {
 
   // User CRUD
   const addUser = (newUser: Omit<UserRecord, "id" | "dateJoined" | "status">) => {
-    const isAgentOrAgency = newUser.role === "Agent" || newUser.role === "Agency";
     const isAdmin = userSession?.role === "Admin";
-    const status: "Active" | "Pending" | "Suspended" = (isAgentOrAgency && !isAdmin) ? "Pending" : "Active";
+    const status: "Active" | "Pending" | "Suspended" = !isAdmin ? "Pending" : "Active";
     const user: UserRecord = {
       ...newUser,
       id: `usr-${Date.now()}`,

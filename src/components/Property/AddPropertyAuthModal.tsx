@@ -401,19 +401,7 @@ export default function AddPropertyAuthModal({ isOpen, onClose }: AddPropertyAut
         });
       }
 
-      // Auto login locally for simulated seamless testing
-      const isPending = userRole === "Agent" || userRole === "Agency";
-      loginUser({
-        name: name,
-        email: email,
-        phone: phone,
-        role: userRole,
-        companyName: agencyNameInput || (userRole === "Agency" ? "Apex Properties" : userRole === "Agent" ? "Independent Agent" : "Individual Seller"),
-        image: avatarPreview || `https://ui-avatars.com/api/?name=${encodeURIComponent(name)}&background=c5a85c&color=fff`,
-        plan: "Free",
-        status: isPending ? "Pending" : "Active"
-      });
-
+      // Do NOT auto-login pending accounts. Show clear approval pending screen.
       setIsSubmitting(false);
       setStep("success");
       
@@ -431,11 +419,6 @@ export default function AddPropertyAuthModal({ isOpen, onClose }: AddPropertyAut
       setIdBackPreview(null);
       setAvatarFile(null);
       setAvatarPreview(null);
-
-      setTimeout(() => {
-        onClose();
-        window.location.href = "/dashboard?tab=add";
-      }, 2000);
 
     } catch (err: any) {
       setError(err.message || "Sign up failed. Please try again.");
@@ -484,6 +467,13 @@ export default function AddPropertyAuthModal({ isOpen, onClose }: AddPropertyAut
                           users.find(u => u.email.toLowerCase() === loginEmail.trim().toLowerCase());
 
       if (matchedUser) {
+        // Enforce Admin Approval Check!
+        if (matchedUser.status === "Pending") {
+          setError("⚠️ Account Approval Pending: Your account has not been approved by an administrator yet. Please wait for admin approval before logging in.");
+          setIsSubmitting(false);
+          return;
+        }
+
         if (matchedUser.status === "Suspended") {
           setError("Your account has been suspended by administration. Please contact support.");
           setIsSubmitting(false);
@@ -548,6 +538,12 @@ export default function AddPropertyAuthModal({ isOpen, onClose }: AddPropertyAut
       const matched = currentUsers.find(u => u.email.toLowerCase() === loginEmail.trim().toLowerCase());
       
       if (matched) {
+        if (matched.status === "Pending") {
+          await supabase.auth.signOut();
+          setError("⚠️ Account Approval Pending: Your account has not been approved by an administrator yet. Please wait for admin approval before logging in.");
+          setIsSubmitting(false);
+          return;
+        }
         if (matched.status === "Suspended") {
           await supabase.auth.signOut();
           setError("Your account has been suspended by administration. Please contact support.");
@@ -1264,7 +1260,7 @@ export default function AddPropertyAuthModal({ isOpen, onClose }: AddPropertyAut
               </motion.div>
             )}
 
-            {/* STEP 3: SUCCESS ANIMATION */}
+            {/* STEP 3: SUCCESS ANIMATION & NOTIFICATION */}
             {step === "success" && (
               <motion.div
                 key="success"
@@ -1273,31 +1269,38 @@ export default function AddPropertyAuthModal({ isOpen, onClose }: AddPropertyAut
                 exit={{ opacity: 0, scale: 0.9 }}
                 className="text-center py-10 space-y-6 flex flex-col items-center justify-center"
               >
-                <div className="w-20 h-20 bg-emerald-500/10 text-emerald-500 rounded-full flex items-center justify-center border border-emerald-500/20 shadow-inner">
-                  <CheckCircle className="w-12 h-12" />
+                <div className="w-20 h-20 bg-amber-500/10 text-amber-500 rounded-full flex items-center justify-center border border-amber-500/20 shadow-inner">
+                  <ShieldCheck className="w-12 h-12 text-amber-500" />
                 </div>
                 
-                <div className="space-y-2">
-                  <span className="text-[10px] font-bold text-emerald-500 uppercase tracking-widest">
-                    {selectedType === "agent" || selectedType === "agency" ? "Approval Required" : "Simulation Connected"}
+                <div className="space-y-2 max-w-md mx-auto">
+                  <span className="text-[10px] font-bold text-amber-500 uppercase tracking-widest px-3 py-1 bg-amber-500/10 border border-amber-500/20 rounded-full inline-block">
+                    Approval Required
                   </span>
                   <h3 className="text-2xl font-extrabold text-foreground">
-                    {selectedType === "agent" || selectedType === "agency" ? "Registration Submitted!" : "Profile Linked Successfully!"}
+                    Registration Submitted Successfully!
                   </h3>
-                  <p className="text-xs text-muted-text max-w-sm mx-auto">
-                    {selectedType === "agent" || selectedType === "agency"
-                      ? "Thank you for registering. Your profile is pending administrative review. Redirecting to your dashboard..."
-                      : "Welcome to Zameen Gem. Redirecting you to the listing creation portal..."}
+                  <p className="text-xs text-muted-text leading-relaxed">
+                    Thank you for registering on <strong className="text-foreground">Zameen Gem</strong>. Your profile is currently <strong className="text-amber-500">PENDING ADMINISTRATIVE APPROVAL</strong> by the Super Admin (<strong className="text-foreground">Chaudhary Waqas</strong>). You will be able to sign in immediately once an administrator approves your account.
                   </p>
                 </div>
 
-                <div className="flex items-center space-x-2 text-[10px] font-bold text-muted-text">
-                  <Loader2 className="w-3.5 h-3.5 animate-spin text-gold" />
-                  <span>
-                    {selectedType === "agent" || selectedType === "agency"
-                      ? "Loading dashboard, please wait..."
-                      : "Launching wizard, please wait..."}
-                  </span>
+                <div className="pt-2 flex flex-col sm:flex-row items-center justify-center gap-3 w-full max-w-xs">
+                  <button
+                    onClick={onClose}
+                    className="w-full py-3 bg-royal text-white hover:bg-royal-hover font-bold text-xs rounded-xl shadow-md cursor-pointer transition-colors"
+                  >
+                    Got It, Close Window
+                  </button>
+                  <button
+                    onClick={() => {
+                      setActiveTab("login");
+                      setStep("select");
+                    }}
+                    className="w-full py-3 bg-muted-bg text-foreground border border-border-base hover:bg-muted-bg/80 font-bold text-xs rounded-xl transition-colors cursor-pointer"
+                  >
+                    Go to Sign In
+                  </button>
                 </div>
               </motion.div>
             )}
