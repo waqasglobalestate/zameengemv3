@@ -506,9 +506,12 @@ export function AppStateProvider({ children }: { children: React.ReactNode }) {
                     dateJoined: reg.created_at ? reg.created_at.split("T")[0] : new Date().toISOString().split("T")[0]
                   });
                   hasChanges = true;
-                } else if (updatedUsers[existingIdx].status !== regStatus) {
-                  updatedUsers[existingIdx] = { ...updatedUsers[existingIdx], status: regStatus };
-                  hasChanges = true;
+                } else {
+                  const existing = updatedUsers[existingIdx];
+                  if (existing.status !== regStatus) {
+                    updatedUsers[existingIdx] = { ...existing, status: regStatus };
+                    hasChanges = true;
+                  }
                 }
               });
               if (hasChanges) {

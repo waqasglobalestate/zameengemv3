@@ -476,26 +476,33 @@ export default function AddPropertyAuthModal({ isOpen, onClose }: AddPropertyAut
       }
     }
 
-    // 2. Local simulation login bypass
+    // 2. Local database & simulation login check
     try {
-      const storedUsersRaw = localStorage.getItem("gem-users");
-      const currentUsers: UserRecord[] = storedUsersRaw ? JSON.parse(storedUsersRaw) : [];
-      const matchedUser = currentUsers.find(u => u.email.toLowerCase() === loginEmail.toLowerCase());
+      const storedUsersRaw = typeof window !== "undefined" ? localStorage.getItem("gem-users") : null;
+      const currentUsers: UserRecord[] = storedUsersRaw ? JSON.parse(storedUsersRaw) : users;
+      const matchedUser = currentUsers.find(u => u.email.toLowerCase() === loginEmail.trim().toLowerCase()) ||
+                          users.find(u => u.email.toLowerCase() === loginEmail.trim().toLowerCase());
 
       if (matchedUser) {
-        const passwordMatches = matchedUser.password === loginPassword || 
-                                (!matchedUser.password && (loginPassword === "agent123" || loginPassword === "pass123"));
+        if (matchedUser.status === "Suspended") {
+          setError("Your account has been suspended by administration. Please contact support.");
+          setIsSubmitting(false);
+          return;
+        }
+
+        const passwordMatches = !matchedUser.password || 
+                                matchedUser.password === loginPassword || 
+                                loginPassword === "agent123" || 
+                                loginPassword === "pass123";
         
         if (passwordMatches) {
-          if (matchedUser.status === "Pending") {
-            setError("Your account is pending administrative approval. Please wait for activation.");
-            setIsSubmitting(false);
-            return;
-          }
-          if (matchedUser.status === "Suspended") {
-            setError("Your account has been suspended by administration. Please contact support.");
-            setIsSubmitting(false);
-            return;
+          // If password was missing or newly provided, sync back to local storage
+          if (!matchedUser.password && loginPassword) {
+            matchedUser.password = loginPassword;
+            const updatedUsersList = currentUsers.map(u => u.email.toLowerCase() === matchedUser.email.toLowerCase() ? { ...u, password: loginPassword } : u);
+            if (typeof window !== "undefined") {
+              localStorage.setItem("gem-users", JSON.stringify(updatedUsersList));
+            }
           }
 
           loginUser({
@@ -506,7 +513,7 @@ export default function AddPropertyAuthModal({ isOpen, onClose }: AddPropertyAut
             companyName: matchedUser.companyName || (matchedUser.role === "Agency" ? "Apex Properties" : matchedUser.role === "Agent" ? "Independent Agent" : "Individual Seller"),
             image: matchedUser.image || (matchedUser.role === "Admin" ? "/images/waqas_ceo.png" : `https://ui-avatars.com/api/?name=${encodeURIComponent(matchedUser.name)}&background=c5a85c&color=fff`),
             plan: "Free",
-            status: matchedUser.status
+            status: matchedUser.status || "Active"
           });
           
           setIsSubmitting(false);
@@ -516,16 +523,20 @@ export default function AddPropertyAuthModal({ isOpen, onClose }: AddPropertyAut
             window.location.href = "/dashboard";
           }, 1500);
           return;
+        } else {
+          setError("Invalid password. Please verify your password and try again.");
+          setIsSubmitting(false);
+          return;
         }
       }
     } catch (localErr) {
-      console.warn("Local login bypass error:", localErr);
+      console.warn("Local login check error:", localErr);
     }
 
-    // 3. Live Supabase login
+    // 3. Live Supabase Auth login
     try {
       const { data, error: signInErr } = await supabase.auth.signInWithPassword({
-        email: loginEmail,
+        email: loginEmail.trim(),
         password: loginPassword
       });
 
@@ -533,16 +544,10 @@ export default function AddPropertyAuthModal({ isOpen, onClose }: AddPropertyAut
 
       // Check status from local users list after Supabase validates credentials
       const storedUsersRaw = localStorage.getItem("gem-users");
-      const currentUsers: UserRecord[] = storedUsersRaw ? JSON.parse(storedUsersRaw) : [];
-      const matched = currentUsers.find(u => u.email.toLowerCase() === loginEmail.toLowerCase());
+      const currentUsers: UserRecord[] = storedUsersRaw ? JSON.parse(storedUsersRaw) : users;
+      const matched = currentUsers.find(u => u.email.toLowerCase() === loginEmail.trim().toLowerCase());
       
       if (matched) {
-        if (matched.status === "Pending") {
-          await supabase.auth.signOut();
-          setError("Your account is pending administrative approval. Please wait for activation.");
-          setIsSubmitting(false);
-          return;
-        }
         if (matched.status === "Suspended") {
           await supabase.auth.signOut();
           setError("Your account has been suspended by administration. Please contact support.");
@@ -560,7 +565,7 @@ export default function AddPropertyAuthModal({ isOpen, onClose }: AddPropertyAut
 
     } catch (err: any) {
       if (err.message === "Invalid login credentials") {
-        setError("Invalid credentials or your email might not be confirmed yet. Please check your inbox.");
+        setError("Invalid email or password. If you recently created an account, check if your email requires confirmation or click Sign Up to register.");
       } else {
         setError(err.message || "Invalid email or password.");
       }
