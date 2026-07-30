@@ -250,7 +250,7 @@ export function AppStateProvider({ children }: { children: React.ReactNode }) {
         const storedProperties = localStorage.getItem("gem-properties");
         if (storedProperties) {
           try {
-            const clean = ensureMinViews(JSON.parse(storedProperties).filter((p: Property) => !p.id.startsWith("prop-")));
+            const clean = ensureMinViews(JSON.parse(storedProperties));
             setProperties(clean);
           } catch (err) {
             console.warn("Failed to parse cached properties", err);
@@ -261,9 +261,14 @@ export function AppStateProvider({ children }: { children: React.ReactNode }) {
         getProperties()
           .then((dbProps) => {
             if (dbProps && dbProps.length > 0) {
-              const clean = ensureMinViews(dbProps.filter((p: Property) => !p.id.startsWith("prop-")));
-              setProperties(clean);
-              localStorage.setItem("gem-properties", JSON.stringify(clean));
+              setProperties((prevProps) => {
+                const dbMap = new Map(dbProps.map((p) => [String(p.id), p]));
+                // Keep local properties that haven't been assigned DB IDs yet
+                const pendingLocal = prevProps.filter((p) => !dbMap.has(String(p.id)));
+                const combined = ensureMinViews([...pendingLocal, ...dbProps]);
+                localStorage.setItem("gem-properties", JSON.stringify(combined));
+                return combined;
+              });
             }
           })
           .catch((err) => {
@@ -408,9 +413,8 @@ export function AppStateProvider({ children }: { children: React.ReactNode }) {
         // Load or clear Leads
         const storedLeads = localStorage.getItem("gem-leads");
         if (storedLeads) {
-          const clean = JSON.parse(storedLeads).filter((l: Lead) => !l.id.startsWith("lead-"));
+          const clean = JSON.parse(storedLeads);
           setLeads(clean);
-          localStorage.setItem("gem-leads", JSON.stringify(clean));
         } else {
           setLeads([]);
           localStorage.setItem("gem-leads", JSON.stringify([]));
