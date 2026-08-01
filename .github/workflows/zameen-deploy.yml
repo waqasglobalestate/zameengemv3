@@ -58,6 +58,7 @@ jobs:
           port: ${{ secrets.HOSTINGER_PORT }}
           script: |
             cd domains/zameengem.com/public_html
+            rm -rf .next _next static public/_next public/static
             unzip -o deploy.zip
             rm -f deploy.zip
             chmod -R 755 .
