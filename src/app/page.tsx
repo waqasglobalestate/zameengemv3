@@ -150,43 +150,265 @@ export default function HomePage() {
   return (
     <div className="flex flex-col min-h-screen">
       
-      {/* 1. HERO SLIDER SECTION */}
-      <section className="relative h-[85vh] w-full overflow-hidden bg-slate-950">
-        {heroImages.map((img, index) => (
-          <div
-            key={index}
-            className={`absolute inset-0 w-full h-full transition-opacity duration-1000 ease-in-out ${
-              index === activeSlide ? "opacity-100" : "opacity-0"
-            }`}
-          >
-            {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img
-              src={img}
-              alt="Luxury Real Estate Showcase"
-              loading={index === 0 ? "eager" : "lazy"}
-              decoding="async"
-              className="w-full h-full object-cover scale-105 transition-transform duration-[6000ms] ease-out"
-              style={{ transform: index === activeSlide ? "scale(1)" : "scale(1.05)" }}
-            />
+      {/* 1. HERO & SEARCH SECTION */}
+      <section className="relative min-h-[85vh] w-full overflow-hidden bg-slate-950 flex flex-col justify-between">
+        {/* Hero Background Slider Images */}
+        <div className="absolute inset-0 w-full h-full">
+          {heroImages.map((img, index) => (
+            <div
+              key={index}
+              className={`absolute inset-0 w-full h-full transition-opacity duration-1000 ease-in-out ${
+                index === activeSlide ? "opacity-100" : "opacity-0"
+              }`}
+            >
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img
+                src={img}
+                alt="Luxury Real Estate Showcase"
+                loading={index === 0 ? "eager" : "lazy"}
+                decoding="async"
+                className="w-full h-full object-cover scale-105 transition-transform duration-[6000ms] ease-out"
+                style={{ transform: index === activeSlide ? "scale(1)" : "scale(1.05)" }}
+              />
+            </div>
+          ))}
+          <div className="absolute inset-0 bg-gradient-to-b from-slate-950/70 via-transparent to-slate-950/80 z-10" />
+        </div>
+
+        {/* TOP: SEARCH WIDGET (Ultra-transparent crystal glass & compact layout) */}
+        <div className="relative z-30 max-w-5xl mx-auto w-full px-3 pt-2 sm:pt-3 md:pt-4">
+          <div className="bg-[#0f172a]/20 dark:bg-black/25 border border-white/20 hover:border-gold/40 rounded-2xl shadow-2xl p-2.5 sm:p-3 backdrop-blur-md transition-all duration-300">
+            <form onSubmit={handleSearch} className="space-y-2">
+              
+              {/* Purpose Switch Tabs */}
+              <div className="flex space-x-1 border-b border-white/15 pb-1.5">
+                {(["Buy", "Rent", "Project"] as const).map((tab) => (
+                  <button
+                    key={tab}
+                    type="button"
+                    onClick={() => setPurpose(tab)}
+                    className={`px-2.5 py-0.5 text-xs font-bold rounded-md transition-all cursor-pointer ${
+                      purpose === tab
+                        ? "bg-gold text-slate-950 shadow font-extrabold"
+                        : "text-slate-200 hover:bg-white/10 hover:text-white"
+                    }`}
+                  >
+                    {tab === "Project" ? "Featured Projects" : tab === "Buy" ? "For Sale" : "For Rent"}
+                  </button>
+                ))}
+              </div>
+
+              {/* Core Search Fields Grid */}
+              <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-2">
+                
+                {/* City Selection */}
+                <div>
+                  <label className="block text-[9px] font-extrabold uppercase text-gold tracking-wider mb-0.5 flex items-center space-x-1">
+                    <MapPin className="w-2.5 h-2.5 text-gold" />
+                    <span>City</span>
+                  </label>
+                  <select
+                    value={city}
+                    onChange={(e) => setCity(e.target.value)}
+                    className="w-full text-xs font-semibold rounded-md border border-white/20 px-2 py-1 bg-slate-950/40 text-white outline-none focus:border-gold focus:bg-slate-950/70 transition-all"
+                  >
+                    <option value="" className="bg-slate-900 text-white">All Cities</option>
+                    {pakistanCities.map((c) => (
+                      <option key={c} value={c} className="bg-slate-900 text-white">{c}</option>
+                    ))}
+                  </select>
+                </div>
+
+                {/* Society / Project */}
+                <div>
+                  <label className="block text-[9px] font-extrabold uppercase text-gold tracking-wider mb-0.5 flex items-center space-x-1">
+                    <Home className="w-2.5 h-2.5 text-gold" />
+                    <span>Society / Project</span>
+                  </label>
+                  <select
+                    value={society}
+                    onChange={(e) => setSociety(e.target.value)}
+                    className="w-full text-xs font-semibold rounded-md border border-white/20 px-2 py-1 bg-slate-950/40 text-white outline-none focus:border-gold focus:bg-slate-950/70 transition-all"
+                  >
+                    <option value="" className="bg-slate-900 text-white">All Societies</option>
+                    <option value="DHA Bahawalpur" className="bg-slate-900 text-white">DHA Bahawalpur</option>
+                    <option value="DHA Multan" className="bg-slate-900 text-white">DHA Multan</option>
+                    <option value="DHA Lahore" className="bg-slate-900 text-white">DHA Lahore</option>
+                    <option value="DHA Islamabad" className="bg-slate-900 text-white">DHA Islamabad</option>
+                    <option value="Bahria Town Projects" className="bg-slate-900 text-white">Bahria Town Projects</option>
+                  </select>
+                </div>
+
+                {/* Property Type */}
+                <div>
+                  <label className="block text-[9px] font-extrabold uppercase text-gold tracking-wider mb-0.5 flex items-center space-x-1">
+                    <Building2 className="w-2.5 h-2.5 text-gold" />
+                    <span>Property Type</span>
+                  </label>
+                  <select
+                    value={type}
+                    onChange={(e) => setType(e.target.value)}
+                    className="w-full text-xs font-semibold rounded-md border border-white/20 px-2 py-1 bg-slate-950/40 text-white outline-none focus:border-gold focus:bg-slate-950/70 transition-all"
+                  >
+                    <option value="" className="bg-slate-900 text-white">All Types</option>
+                    <option value="Residential Plot" className="bg-slate-900 text-white">Residential Plot</option>
+                    <option value="Commercial Plot" className="bg-slate-900 text-white">Commercial Plot</option>
+                    <option value="Villa" className="bg-slate-900 text-white">Villa</option>
+                    <option value="House" className="bg-slate-900 text-white">House</option>
+                  </select>
+                </div>
+
+                {/* Plot Size */}
+                <div>
+                  <label className="block text-[9px] font-extrabold uppercase text-gold tracking-wider mb-0.5 flex items-center space-x-1">
+                    <Ruler className="w-2.5 h-2.5 text-gold" />
+                    <span>Plot Size</span>
+                  </label>
+                  <select
+                    value={size}
+                    onChange={(e) => setSize(e.target.value)}
+                    className="w-full text-xs font-semibold rounded-md border border-white/20 px-2 py-1 bg-slate-950/40 text-white outline-none focus:border-gold focus:bg-slate-950/70 transition-all"
+                  >
+                    <option value="" className="bg-slate-900 text-white">Any Size</option>
+                    <option value="5 Marla" className="bg-slate-900 text-white">5 Marla</option>
+                    <option value="10 Marla" className="bg-slate-900 text-white">10 Marla</option>
+                    <option value="1 Kanal" className="bg-slate-900 text-white">1 Kanal</option>
+                    <option value="2 Kanal" className="bg-slate-900 text-white">2 Kanal</option>
+                  </select>
+                </div>
+
+                {/* Price Cap */}
+                <div>
+                  <label className="block text-[9px] font-extrabold uppercase text-gold tracking-wider mb-0.5 flex items-center space-x-1">
+                    <DollarSign className="w-2.5 h-2.5 text-gold" />
+                    <span>Max Budget (PKR)</span>
+                  </label>
+                  <select
+                    value={priceMax}
+                    onChange={(e) => setPriceMax(e.target.value)}
+                    className="w-full text-xs font-semibold rounded-md border border-white/20 px-2 py-1 bg-slate-950/40 text-white outline-none focus:border-gold focus:bg-slate-950/70 transition-all"
+                  >
+                    <option value="" className="bg-slate-900 text-white">No Limit</option>
+                    <option value="5000000" className="bg-slate-900 text-white">Under 50 Lakhs</option>
+                    <option value="10000000" className="bg-slate-900 text-white">Under 1 Crore</option>
+                    <option value="20000000" className="bg-slate-900 text-white">Under 2 Crore</option>
+                    <option value="40000000" className="bg-slate-900 text-white">Under 4 Crore</option>
+                  </select>
+                </div>
+
+              </div>
+
+              {/* Advanced Filters Expandable section */}
+              {showAdvanced && (
+                <div className="grid grid-cols-2 md:grid-cols-4 gap-2 pt-2 border-t border-white/15 animate-in fade-in duration-300">
+                  {/* Sector */}
+                  <div>
+                    <label className="block text-[9px] font-extrabold uppercase text-gold mb-0.5">Sector Block</label>
+                    <input
+                      type="text"
+                      placeholder="e.g. Sector A"
+                      value={sector}
+                      onChange={(e) => setSector(e.target.value)}
+                      className="w-full text-xs font-semibold rounded-md border border-white/20 px-2 py-1 bg-slate-950/40 text-white placeholder-slate-400 outline-none focus:border-gold"
+                    />
+                  </div>
+
+                  {/* Possession */}
+                  <div>
+                    <label className="block text-[9px] font-extrabold uppercase text-gold mb-0.5">Possession Status</label>
+                    <select
+                      value={possession}
+                      onChange={(e) => setPossession(e.target.value)}
+                      className="w-full text-xs font-semibold rounded-md border border-white/20 px-2 py-1 bg-slate-950/40 text-white outline-none focus:border-gold"
+                    >
+                      <option value="" className="bg-slate-900 text-white">Any Status</option>
+                      <option value="Possession" className="bg-slate-900 text-white">Possession Ready</option>
+                      <option value="Non-Possession" className="bg-slate-900 text-white">Non-Possession</option>
+                    </select>
+                  </div>
+
+                  {/* Corner, Park, Main Boulevard check row */}
+                  <div className="col-span-2 flex flex-wrap gap-2.5 items-center pt-3 text-slate-200">
+                    <label className="flex items-center space-x-1 text-xs font-semibold cursor-pointer hover:text-white">
+                      <input 
+                        type="checkbox" 
+                        checked={corner} 
+                        onChange={(e) => setCorner(e.target.checked)}
+                        className="rounded accent-gold text-white" 
+                      />
+                      <span>Corner Plot</span>
+                    </label>
+                    <label className="flex items-center space-x-1 text-xs font-semibold cursor-pointer hover:text-white">
+                      <input 
+                        type="checkbox" 
+                        checked={parkFacing} 
+                        onChange={(e) => setParkFacing(e.target.checked)}
+                        className="rounded accent-gold text-white" 
+                      />
+                      <span>Park Facing</span>
+                    </label>
+                    <label className="flex items-center space-x-1 text-xs font-semibold cursor-pointer hover:text-white">
+                      <input 
+                        type="checkbox" 
+                        checked={mainBoulevard} 
+                        onChange={(e) => setMainBoulevard(e.target.checked)}
+                        className="rounded accent-gold text-white" 
+                      />
+                      <span>Main Boulevard</span>
+                    </label>
+                    <label className="flex items-center space-x-1 text-xs font-semibold cursor-pointer hover:text-white">
+                      <input 
+                        type="checkbox" 
+                        checked={installment} 
+                        onChange={(e) => setInstallment(e.target.checked)}
+                        className="rounded accent-gold text-white" 
+                      />
+                      <span>Installment Plan</span>
+                    </label>
+                  </div>
+                </div>
+              )}
+
+              {/* Actions Bar */}
+              <div className="flex items-center justify-between pt-1 border-t border-white/15">
+                <button
+                  type="button"
+                  onClick={() => setShowAdvanced(!showAdvanced)}
+                  className="text-xs font-semibold text-slate-300 hover:text-gold flex items-center space-x-1 cursor-pointer transition-colors"
+                >
+                  {showAdvanced ? (
+                    <><span>Simple Search</span><ChevronUp className="w-3.5 h-3.5" /></>
+                  ) : (
+                    <><span>Advanced Filters</span><ChevronDown className="w-3.5 h-3.5" /></>
+                  )}
+                </button>
+
+                <button
+                  type="submit"
+                  className="px-4 py-1.5 bg-[#c5a85c] hover:bg-[#b09248] text-slate-950 font-extrabold text-xs rounded-lg transition-all flex items-center space-x-1.5 shadow cursor-pointer"
+                >
+                  <Search className="w-3.5 h-3.5" />
+                  <span>Search Properties</span>
+                </button>
+              </div>
+
+            </form>
           </div>
-        ))}
+        </div>
 
-        {/* Subtle left-side dark gradient overlay for text readability and premium look */}
-        <div className="absolute inset-0 bg-gradient-to-r from-slate-950/85 via-slate-950/45 to-transparent z-10" />
-
-        {/* Hero Content Overlay */}
-        <div className="absolute inset-0 flex items-center justify-start p-6 sm:p-12 md:p-20 lg:p-32 z-25 pointer-events-none">
-          <div className="max-w-2xl text-left space-y-6 animate-in fade-in slide-in-from-left-5 duration-700 pointer-events-auto">
+        {/* HERO CONTENT TEXT (Positioned on lower side of hero section) */}
+        <div className="relative z-25 max-w-7xl mx-auto w-full px-4 sm:px-6 md:px-8 mt-auto pt-6 pb-6 sm:pb-8 md:pb-12">
+          <div className="w-full text-left space-y-2.5 animate-in fade-in slide-in-from-left-5 duration-700">
             <span className="inline-flex items-center space-x-1.5 px-3 py-1 text-[10px] sm:text-xs font-bold bg-[#c5a85c]/25 border border-[#c5a85c]/50 rounded-full text-[#c5a85c] tracking-widest uppercase">
               Zameen Gem
             </span>
             
-            <h1 className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-black text-white tracking-tight leading-tight">
-              Your Trusted Partner in <br />
-              <span className="text-[#c5a85c] gold-gradient-text font-black">Real Estate Investment</span>
+            <h1 className="text-[14px] xs:text-[17px] sm:text-[22px] md:text-[28px] lg:text-[36px] xl:text-[44px] font-black text-white tracking-tight leading-none whitespace-nowrap flex items-center flex-nowrap gap-x-1.5 sm:gap-x-2.5 max-w-full overflow-hidden">
+              <span className="shrink-0">Your Trusted Partner in</span>
+              <span className="text-[#c5a85c] gold-gradient-text font-black shrink-0">Real Estate Investment</span>
             </h1>
             
-            <p className="text-xs sm:text-sm md:text-lg text-slate-100 font-medium leading-relaxed drop-shadow-md">
+            <p className="text-[10px] xs:text-[11px] sm:text-xs md:text-sm lg:text-base text-slate-100 font-medium leading-none drop-shadow-md whitespace-nowrap max-w-full overflow-hidden">
               Buy, Sell & Invest in DHA Bahawalpur and Pakistan&apos;s Leading Housing Projects. Let chief consultant Waqas Ahmad Chaudhary guide your wealth.
             </p>
           </div>
@@ -195,237 +417,16 @@ export default function HomePage() {
         {/* Slide Controls */}
         <button
           onClick={() => setActiveSlide((prev) => (prev - 1 + heroImages.length) % heroImages.length)}
-          className="absolute left-4 top-1/2 -translate-y-1/2 p-2 rounded-full bg-black/30 hover:bg-black/50 text-white transition-all z-30"
+          className="absolute left-4 top-1/2 -translate-y-1/2 p-2 rounded-full bg-black/40 hover:bg-black/70 text-white transition-all z-30 cursor-pointer"
         >
           <ChevronLeft className="w-5 h-5" />
         </button>
         <button
           onClick={() => setActiveSlide((prev) => (prev + 1) % heroImages.length)}
-          className="absolute right-4 top-1/2 -translate-y-1/2 p-2 rounded-full bg-black/30 hover:bg-black/50 text-white transition-all z-30"
+          className="absolute right-4 top-1/2 -translate-y-1/2 p-2 rounded-full bg-black/40 hover:bg-black/70 text-white transition-all z-30 cursor-pointer"
         >
           <ChevronRight className="w-5 h-5" />
         </button>
-      </section>
-
-      {/* 2. ADVANCED SEARCH WIDGET */}
-      <section className="relative z-40 -mt-16 max-w-6xl mx-auto w-full px-4">
-        <div className="bg-background border border-border-base rounded-2xl shadow-2xl p-5 md:p-6 glass">
-          <form onSubmit={handleSearch} className="space-y-4">
-            
-            {/* Purpose Switch Tabs */}
-            <div className="flex space-x-2 border-b border-border-base pb-3">
-              {(["Buy", "Rent", "Project"] as const).map((tab) => (
-                <button
-                  key={tab}
-                  type="button"
-                  onClick={() => setPurpose(tab)}
-                  className={`px-4 py-1.5 text-xs sm:text-sm font-bold rounded-lg transition-all ${
-                    purpose === tab
-                      ? "bg-royal text-white dark:bg-white dark:text-royal"
-                      : "text-muted-text hover:bg-muted-bg"
-                  }`}
-                >
-                  {tab === "Project" ? "Featured Projects" : tab === "Buy" ? "For Sale" : "For Rent"}
-                </button>
-              ))}
-            </div>
-
-            {/* Core Search Fields Grid */}
-            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4">
-              
-              {/* City Selection */}
-              <div>
-                <label className="block text-[10px] font-extrabold uppercase text-muted-text tracking-wider mb-1 flex items-center space-x-1">
-                  <MapPin className="w-3 h-3 text-gold" />
-                  <span>City</span>
-                </label>
-                <select
-                  value={city}
-                  onChange={(e) => setCity(e.target.value)}
-                  className="w-full text-xs font-bold rounded-lg border border-border-base px-3 py-2.5 bg-muted-bg text-foreground outline-none focus:ring-1 focus:ring-royal"
-                >
-                  <option value="">All Cities</option>
-                  {pakistanCities.map((c) => (
-                    <option key={c} value={c}>{c}</option>
-                  ))}
-                </select>
-              </div>
-
-              {/* Society / Project */}
-              <div>
-                <label className="block text-[10px] font-extrabold uppercase text-muted-text tracking-wider mb-1 flex items-center space-x-1">
-                  <Home className="w-3 h-3 text-gold" />
-                  <span>Society / Project</span>
-                </label>
-                <select
-                  value={society}
-                  onChange={(e) => setSociety(e.target.value)}
-                  className="w-full text-xs font-bold rounded-lg border border-border-base px-3 py-2.5 bg-muted-bg text-foreground outline-none focus:ring-1 focus:ring-royal"
-                >
-                  <option value="">All Societies</option>
-                  <option value="DHA Bahawalpur">DHA Bahawalpur</option>
-                  <option value="DHA Multan">DHA Multan</option>
-                  <option value="DHA Lahore">DHA Lahore</option>
-                  <option value="DHA Islamabad">DHA Islamabad</option>
-                  <option value="Bahria Town Projects">Bahria Town Projects</option>
-                </select>
-              </div>
-
-              {/* Property Type */}
-              <div>
-                <label className="block text-[10px] font-extrabold uppercase text-muted-text tracking-wider mb-1 flex items-center space-x-1">
-                  <Building2 className="w-3 h-3 text-gold" />
-                  <span>Property Type</span>
-                </label>
-                <select
-                  value={type}
-                  onChange={(e) => setType(e.target.value)}
-                  className="w-full text-xs font-bold rounded-lg border border-border-base px-3 py-2.5 bg-muted-bg text-foreground outline-none focus:ring-1 focus:ring-royal"
-                >
-                  <option value="">All Types</option>
-                  <option value="Residential Plot">Residential Plot</option>
-                  <option value="Commercial Plot">Commercial Plot</option>
-                  <option value="Villa">Villa</option>
-                  <option value="House">House</option>
-                </select>
-              </div>
-
-              {/* Plot Size */}
-              <div>
-                <label className="block text-[10px] font-extrabold uppercase text-muted-text tracking-wider mb-1 flex items-center space-x-1">
-                  <Ruler className="w-3 h-3 text-gold" />
-                  <span>Plot Size</span>
-                </label>
-                <select
-                  value={size}
-                  onChange={(e) => setSize(e.target.value)}
-                  className="w-full text-xs font-bold rounded-lg border border-border-base px-3 py-2.5 bg-muted-bg text-foreground outline-none focus:ring-1 focus:ring-royal"
-                >
-                  <option value="">Any Size</option>
-                  <option value="5 Marla">5 Marla</option>
-                  <option value="10 Marla">10 Marla</option>
-                  <option value="1 Kanal">1 Kanal</option>
-                  <option value="2 Kanal">2 Kanal</option>
-                </select>
-              </div>
-
-              {/* Price Cap */}
-              <div>
-                <label className="block text-[10px] font-extrabold uppercase text-muted-text tracking-wider mb-1 flex items-center space-x-1">
-                  <DollarSign className="w-3 h-3 text-gold" />
-                  <span>Max Budget (PKR)</span>
-                </label>
-                <select
-                  value={priceMax}
-                  onChange={(e) => setPriceMax(e.target.value)}
-                  className="w-full text-xs font-bold rounded-lg border border-border-base px-3 py-2.5 bg-muted-bg text-foreground outline-none focus:ring-1 focus:ring-royal"
-                >
-                  <option value="">No Limit</option>
-                  <option value="5000000">Under 50 Lakhs</option>
-                  <option value="10000000">Under 1 Crore</option>
-                  <option value="20000000">Under 2 Crore</option>
-                  <option value="40000000">Under 4 Crore</option>
-                </select>
-              </div>
-
-            </div>
-
-            {/* Advanced Filters Expandable section */}
-            {showAdvanced && (
-              <div className="grid grid-cols-2 md:grid-cols-4 gap-4 pt-3 border-t border-border-base animate-in fade-in duration-300">
-                {/* Sector */}
-                <div>
-                  <label className="block text-[10px] font-extrabold uppercase text-muted-text mb-1">Sector Block</label>
-                  <input
-                    type="text"
-                    placeholder="e.g. Sector A"
-                    value={sector}
-                    onChange={(e) => setSector(e.target.value)}
-                    className="w-full text-xs font-semibold rounded-lg border border-border-base px-3 py-2 bg-muted-bg text-foreground outline-none focus:ring-1 focus:ring-royal"
-                  />
-                </div>
-
-                {/* Possession */}
-                <div>
-                  <label className="block text-[10px] font-extrabold uppercase text-muted-text mb-1">Possession Status</label>
-                  <select
-                    value={possession}
-                    onChange={(e) => setPossession(e.target.value)}
-                    className="w-full text-xs font-semibold rounded-lg border border-border-base px-3 py-2.5 bg-muted-bg text-foreground outline-none focus:ring-1 focus:ring-royal"
-                  >
-                    <option value="">Any Status</option>
-                    <option value="Possession">Possession Ready</option>
-                    <option value="Non-Possession">Non-Possession</option>
-                  </select>
-                </div>
-
-                {/* Corner, Park, Main Boulevard check row */}
-                <div className="col-span-2 flex flex-wrap gap-4 items-center pt-5">
-                  <label className="flex items-center space-x-2 text-xs font-bold cursor-pointer">
-                    <input 
-                      type="checkbox" 
-                      checked={corner} 
-                      onChange={(e) => setCorner(e.target.checked)}
-                      className="rounded accent-gold text-white" 
-                    />
-                    <span>Corner Plot</span>
-                  </label>
-                  <label className="flex items-center space-x-2 text-xs font-bold cursor-pointer">
-                    <input 
-                      type="checkbox" 
-                      checked={parkFacing} 
-                      onChange={(e) => setParkFacing(e.target.checked)}
-                      className="rounded accent-gold text-white" 
-                    />
-                    <span>Park Facing</span>
-                  </label>
-                  <label className="flex items-center space-x-2 text-xs font-bold cursor-pointer">
-                    <input 
-                      type="checkbox" 
-                      checked={mainBoulevard} 
-                      onChange={(e) => setMainBoulevard(e.target.checked)}
-                      className="rounded accent-gold text-white" 
-                    />
-                    <span>Main Boulevard</span>
-                  </label>
-                  <label className="flex items-center space-x-2 text-xs font-bold cursor-pointer">
-                    <input 
-                      type="checkbox" 
-                      checked={installment} 
-                      onChange={(e) => setInstallment(e.target.checked)}
-                      className="rounded accent-gold text-white" 
-                    />
-                    <span>Installment Plan</span>
-                  </label>
-                </div>
-              </div>
-            )}
-
-            {/* Actions Bar */}
-            <div className="flex items-center justify-between pt-2 border-t border-border-base">
-              <button
-                type="button"
-                onClick={() => setShowAdvanced(!showAdvanced)}
-                className="text-xs font-bold text-muted-text hover:text-gold flex items-center space-x-1"
-              >
-                {showAdvanced ? (
-                  <><span>Simple Search</span><ChevronUp className="w-3.5 h-3.5" /></>
-                ) : (
-                  <><span>Advanced Filters</span><ChevronDown className="w-3.5 h-3.5" /></>
-                )}
-              </button>
-
-              <button
-                type="submit"
-                className="px-6 py-2.5 bg-royal dark:bg-white text-white dark:text-royal font-bold text-xs sm:text-sm rounded-xl hover:bg-royal-hover dark:hover:bg-slate-200 transition-all flex items-center space-x-2 shadow-lg"
-              >
-                <Search className="w-4 h-4" />
-                <span>Search Properties</span>
-              </button>
-            </div>
-
-          </form>
-        </div>
       </section>
 
       {/* 2. HOT LISTINGS (1st - Top Priority - Exclusive to Pro Members) */}

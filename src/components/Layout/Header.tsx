@@ -106,14 +106,14 @@ export default function Header() {
           </div>
 
           {/* Desktop Navigation Links */}
-          <nav className="hidden lg:flex items-center gap-x-1.5 xl:gap-x-4 flex-shrink min-w-0">
+          <nav className="hidden lg:flex items-center gap-x-2 xl:gap-x-4 shrink-0">
             {navLinks.map((link) => {
               const isActive = pathname === link.href || (link.href !== "/" && pathname.startsWith(link.href));
               return (
                 <Link
                   key={link.name}
                   href={link.href}
-                  className={`text-[11px] xl:text-xs 2xl:text-sm font-extrabold tracking-wide transition-colors duration-200 whitespace-nowrap hover:text-gold ${
+                  className={`text-xs xl:text-sm font-extrabold tracking-wide transition-colors duration-200 whitespace-nowrap hover:text-gold ${
                     isActive
                       ? "text-gold border-b-2 border-gold pb-0.5"
                       : "text-foreground/80 dark:text-foreground/90"
@@ -126,15 +126,15 @@ export default function Header() {
           </nav>
 
           {/* Actions & Role Switcher (Desktop & Laptop) */}
-          <div className="hidden lg:flex items-center gap-x-1.5 xl:gap-x-3 flex-shrink-0">
+          <div className="hidden lg:flex items-center gap-x-2 xl:gap-x-3 shrink-0">
             {/* Global Search Box */}
-            <form onSubmit={handleGlobalSearch} className="relative flex items-center">
+            <form onSubmit={handleGlobalSearch} className="relative flex items-center shrink-0">
               <input
                 type="text"
                 placeholder="Search property..."
                 value={globalSearch}
                 onChange={(e) => setGlobalSearch(e.target.value)}
-                className="pl-3 pr-7 py-1.5 text-[11px] xl:text-xs rounded-xl border border-gold/50 bg-background/50 focus:bg-background focus:border-gold outline-none w-28 lg:w-36 xl:w-52 transition-all"
+                className="pl-3 pr-7 py-1.5 text-xs rounded-xl border border-gold/50 bg-background/50 focus:bg-background focus:border-gold outline-none w-28 xl:w-44 transition-all"
               />
               <button type="submit" className="absolute right-2 text-muted-text hover:text-gold transition-colors">
                 <Search className="w-3.5 h-3.5" />
