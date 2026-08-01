@@ -24,6 +24,7 @@ export interface Property {
   isFeatured: boolean;
   isPremium?: boolean;
   isHot?: boolean;
+  createdByEmail?: string;
   createdAt?: string;
   isCorner: boolean;
   isParkFacing: boolean;

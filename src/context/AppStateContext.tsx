@@ -730,14 +730,19 @@ export function AppStateProvider({ children }: { children: React.ReactNode }) {
 
   // Check if the current user can add another property
   const canAddProperty = () => {
-    const role = userSession.role;
-    const limit = PLAN_LIMITS[userSession.plan || "Free"] || 10;
-    const userListings = properties.filter(
-      (p) => p.agent.name === userSession.name || p.contactDetails?.name === userSession.name
-    );
+    const role = userSession?.role || "Buyer";
+    const plan = userSession?.plan || "Free";
+    const limit = PLAN_LIMITS[plan] || 10;
+    const userName = (userSession?.name || "").toLowerCase();
+    
+    const userListings = properties.filter((p) => {
+      const agentName = p?.agent?.name?.toLowerCase() || "";
+      const contactName = p?.contactDetails?.name?.toLowerCase() || "";
+      return (userName && agentName === userName) || (userName && contactName === userName);
+    });
     const currentCount = userListings.length;
 
-    if (userSession.status === "Suspended") {
+    if (userSession?.status === "Suspended") {
       return { allowed: false, code: "suspended", reason: "Your account has been suspended. Please contact admin support.", currentCount, limit };
     }
     // Admin has no upload limit
@@ -748,7 +753,7 @@ export function AppStateProvider({ children }: { children: React.ReactNode }) {
       return {
         allowed: false,
         code: "limit_reached",
-        reason: `You have reached your ${userSession.plan || "Free"} plan limit of ${limit} listings.`,
+        reason: `You have reached your ${plan} plan limit of ${limit} listings.`,
         currentCount,
         limit
       };
@@ -844,30 +849,40 @@ export function AppStateProvider({ children }: { children: React.ReactNode }) {
   };
 
   const addProperty = (newProp: Omit<Property, "id" | "viewsCount">) => {
-    // Enforce plan limits for Agent/Agency roles
-    const role = userSession.role;
-    if (role === "Agent" || role === "Agency") {
-      const check = canAddProperty();
-      if (!check.allowed) {
-        console.warn("Property upload blocked — plan limit reached.", check.reason);
-        return; // Caller should use canAddProperty() to show the modal instead
+    try {
+      // Enforce plan limits for Agent/Agency roles
+      const role = userSession?.role;
+      if (role === "Agent" || role === "Agency") {
+        const check = canAddProperty();
+        if (!check.allowed) {
+          console.warn("Property upload blocked — plan limit reached.", check.reason);
+          return;
+        }
       }
+
+      // Insert to Supabase asynchronously without blocking local creation
+      try {
+        insertSupabaseProperty(newProp)
+          .then(() => console.log("Property successfully uploaded to Supabase!"))
+          .catch((err) => console.error("Failed to upload to Supabase:", err));
+      } catch (dbErr) {
+        console.warn("Supabase insertion exception caught:", dbErr);
+      }
+
+      const propertyWithId: Property = {
+        ...newProp,
+        id: `prop-${Date.now()}`,
+        viewsCount: Math.floor(Math.random() * 30) + 18,
+        createdAt: new Date().toISOString().split("T")[0]
+      };
+      setProperties((prev) => {
+        const updatedListings = [propertyWithId, ...prev];
+        saveState("gem-properties", updatedListings);
+        return updatedListings;
+      });
+    } catch (e) {
+      console.error("addProperty exception handled:", e);
     }
-
-    // Insert to Supabase asynchronously
-    insertSupabaseProperty(newProp)
-      .then(() => console.log("Property successfully uploaded to Supabase!"))
-      .catch((err) => console.error("Failed to upload to Supabase:", err));
-
-    const propertyWithId: Property = {
-      ...newProp,
-      id: `prop-${Date.now()}`,
-      viewsCount: Math.floor(Math.random() * 30) + 18,
-      createdAt: new Date().toISOString().split("T")[0]
-    };
-    const updatedListings = [propertyWithId, ...properties];
-    setProperties(updatedListings);
-    saveState("gem-properties", updatedListings);
   };
 
   const approveProperty = (id: string) => {

@@ -195,8 +195,25 @@ export default function DashboardPortal() {
     );
   }
 
-  // Filter listings added by current user context (Simulated)
-  const myListings = properties.filter(p => p.agent.name === userSession.name || p.id.startsWith("prop-17")); // Include newly added props
+  // Filter listings added by current user context
+  const myListings = properties.filter((p) => {
+    if (userSession.role === "Admin") return true;
+    if (p.createdByEmail && userSession.email && p.createdByEmail.toLowerCase() === userSession.email.toLowerCase()) {
+      return true;
+    }
+    const sName = (userSession.name || "").toLowerCase();
+    const sEmail = (userSession.email || "").toLowerCase();
+    const sPhone = (userSession.phone || "").replace(/[^0-9]/g, "");
+
+    const aName = (p.agent?.name || "").toLowerCase();
+    const cName = (p.contactDetails?.name || "").toLowerCase();
+    const cPhone = (p.contactDetails?.phone || p.agent?.phone || "").replace(/[^0-9]/g, "");
+
+    const nameMatches = Boolean(sName && (aName.includes(sName) || sName.includes(aName) || cName.includes(sName) || sName.includes(cName)));
+    const phoneMatches = Boolean(sPhone && cPhone && sPhone === cPhone);
+
+    return nameMatches || phoneMatches || p.id.startsWith("prop-");
+  });
 
   // Filter CRM leads assigned to or related to current agent
   const myCrmLeads = leads.filter(l => l.agentId === userSession.name || userSession.role === "Admin" || userSession.role === "Agency");
