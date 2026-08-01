@@ -22,7 +22,8 @@ import {
   ChevronDown, 
   ChevronUp,
   Home,
-  Flame
+  Flame,
+  Zap
 } from "lucide-react";
 
 const pakistanCities = [
@@ -113,6 +114,20 @@ export default function HomePage() {
 
     router.push(`/properties?${params.toString()}`);
   };
+
+  // 0. Super Hot Listings: top priority spotlight for Pro/Premium members (max 1 per Premium account holder)
+  const superHotListings = properties
+    .filter((p) => p.isSuperHot && p.isApproved !== false)
+    .sort((a, b) => {
+      const timeA = parseInt(a.id.replace(/\D/g, "")) || 0;
+      const timeB = parseInt(b.id.replace(/\D/g, "")) || 0;
+      return timeB - timeA;
+    });
+
+  // Showcase fallback: If no custom listing has isSuperHot set yet, display top featured/hot listings so section is always filled
+  const displaySuperHotListings = superHotListings.length > 0 
+    ? superHotListings 
+    : properties.filter((p) => (p.isHot || p.isPremium) && p.isApproved !== false).slice(0, 4);
 
   // 1. Hot Listings: exclusive listings for Pro members marked as isHot
   const hotListings = properties
@@ -429,7 +444,43 @@ export default function HomePage() {
         </button>
       </section>
 
-      {/* 2. HOT LISTINGS (1st - Top Priority - Exclusive to Pro Members) */}
+      {/* 2. SUPER HOT LISTINGS SECTION (Top Priority - Exclusive 1 Listing per Premium Account Holder) */}
+      <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12 border-b border-border-base/50">
+        <div className="bg-gradient-to-r from-amber-500/15 via-rose-500/10 to-amber-500/15 border-2 border-amber-500/40 rounded-3xl p-6 md:p-8 shadow-2xl backdrop-blur-md relative overflow-hidden">
+          
+          <div className="flex flex-col md:flex-row md:items-center justify-between mb-8 gap-4 relative z-10">
+            <div className="space-y-1.5">
+              <span className="inline-flex items-center space-x-1.5 text-[10px] font-black text-amber-950 dark:text-amber-300 uppercase tracking-widest bg-gradient-to-r from-amber-400 to-rose-500 px-3 py-1 rounded-full shadow-lg border border-amber-300">
+                <Zap className="w-3.5 h-3.5 fill-white text-white animate-bounce" />
+                <span>⚡ Super Hot Spotlight</span>
+              </span>
+              <h2 className="text-2xl sm:text-3xl font-black tracking-tight text-foreground flex items-center gap-2 mt-2">
+                Super Hot Listings
+              </h2>
+              <p className="text-xs sm:text-sm text-muted-text max-w-2xl">
+                Top Priority Spotlight deals exclusive to Premium members. Premium account holders can list a maximum of <strong>1 Super Hot Listing</strong> out of 100 total listings.
+              </p>
+            </div>
+            
+            <Link
+              href="/properties?superHot=true"
+              className="inline-flex items-center space-x-2 text-xs sm:text-sm font-black text-slate-950 dark:text-amber-300 bg-gold hover:bg-gold-hover px-4 py-2 rounded-xl transition-all shadow-md shrink-0 cursor-pointer"
+            >
+              <span>View Super Hot Spotlight</span>
+              <ArrowRight className="w-4 h-4" />
+            </Link>
+          </div>
+
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6 relative z-10">
+            {displaySuperHotListings.map((prop) => (
+              <PropertyCard key={prop.id} property={{ ...prop, isSuperHot: true }} />
+            ))}
+          </div>
+
+        </div>
+      </section>
+
+      {/* 3. HOT LISTINGS (Exclusive to Pro Members) */}
       <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16 border-b border-border-base/50">
         <div className="flex flex-col sm:flex-row sm:items-end justify-between mb-10 gap-4">
           <div className="space-y-2">

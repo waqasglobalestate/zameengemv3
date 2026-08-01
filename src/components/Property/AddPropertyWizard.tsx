@@ -24,7 +24,8 @@ import {
   Building2,
   Trash2,
   Lock,
-  Flame
+  Flame,
+  Zap
 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 
@@ -97,10 +98,21 @@ interface AddPropertyWizardProps {
 }
 
 export default function AddPropertyWizard({ onSuccess }: AddPropertyWizardProps) {
-  const { addProperty, userSession } = useAppState();
-  const isPremiumAgency = (userSession.role === "Agency" && userSession.plan === "Pro") || userSession.role === "Admin";
+  const { addProperty, userSession, properties } = useAppState();
+  const isPremiumUser = userSession.plan === "Pro" || userSession.role === "Admin" || userSession.role === "Agent" || userSession.role === "Agency";
+  const isPremiumAgency = isPremiumUser;
   const [step, setStep] = useState(1);
   const [validationError, setValidationError] = useState<string | null>(null);
+
+  // Calculate user's existing hot & super hot listings count
+  const userListings = properties.filter(
+    (p) =>
+      (userSession.email && p.createdByEmail?.toLowerCase() === userSession.email.toLowerCase()) ||
+      p.agent?.name === userSession.name ||
+      p.contactDetails?.name === userSession.name
+  );
+  const userHotCount = userListings.filter((p) => p.isHot).length;
+  const userSuperHotCount = userListings.filter((p) => p.isSuperHot).length;
 
   // Form State
   const [purpose, setPurpose] = useState<"Buy" | "Rent">("Buy");
@@ -131,6 +143,31 @@ export default function AddPropertyWizard({ onSuccess }: AddPropertyWizardProps)
   const [isParkFacing, setIsParkFacing] = useState(false);
   const [isMainBoulevard, setIsMainBoulevard] = useState(false);
   const [isHot, setIsHot] = useState(false);
+  const [isSuperHot, setIsSuperHot] = useState(false);
+
+  const handleToggleHot = (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (e.target.checked) {
+      if (userHotCount >= 5) {
+        alert("Premium Listing Limit Reached:\n\nA Premium account allows a maximum of 5 Hot Listings out of your 100 listings limit. You currently have 5 active Hot listings.");
+        return;
+      }
+      setIsHot(true);
+    } else {
+      setIsHot(false);
+    }
+  };
+
+  const handleToggleSuperHot = (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (e.target.checked) {
+      if (userSuperHotCount >= 1) {
+        alert("Premium Listing Limit Reached:\n\nA Premium account allows a maximum of 1 Super Hot Listing out of your 100 listings limit. You currently have 1 active Super Hot listing.");
+        return;
+      }
+      setIsSuperHot(true);
+    } else {
+      setIsSuperHot(false);
+    }
+  };
   const [selectedAmenities, setSelectedAmenities] = useState<string[]>([
     "Sui Gas",
     "Underground Electricity",
@@ -533,6 +570,7 @@ export default function AddPropertyWizard({ onSuccess }: AddPropertyWizardProps)
         isParkFacing: !!isParkFacing,
         isMainBoulevard: !!isMainBoulevard,
         isHot: !!isHot,
+        isSuperHot: !!isSuperHot,
         possessionStatus: possessionStatus || "Possession",
         installmentAvailable: !!installmentAvailable,
         installmentDetails: installmentAvailable ? {
@@ -608,6 +646,7 @@ export default function AddPropertyWizard({ onSuccess }: AddPropertyWizardProps)
           isParkFacing: !!isParkFacing,
           isMainBoulevard: !!isMainBoulevard,
           isHot: !!isHot,
+          isSuperHot: !!isSuperHot,
           isApproved: true,
           possessionStatus: possessionStatus || "Possession",
           installmentAvailable: !!installmentAvailable,
@@ -1097,7 +1136,44 @@ export default function AddPropertyWizard({ onSuccess }: AddPropertyWizardProps)
                       </div>
 
                       {/* Hot Listing Option for Premium Paid Agencies */}
+                      {/* Super Hot Listing Option Card */}
                       <div className="col-span-3 pt-4 border-t border-border-base/50">
+                        <div className="flex flex-col sm:flex-row sm:items-center justify-between p-4 rounded-xl border border-amber-500/30 bg-gradient-to-r from-amber-500/10 via-rose-500/10 to-amber-500/10 backdrop-blur-sm gap-4">
+                          <div className="flex items-start space-x-3">
+                            <div className="p-2 bg-amber-500/20 rounded-lg border border-amber-500/30 mt-0.5">
+                              <Zap className="w-5 h-5 text-amber-500 fill-amber-500 animate-pulse" />
+                            </div>
+                            <div>
+                              <h4 className="text-xs font-black text-foreground flex items-center gap-1.5">
+                                ⚡ Super Hot Listing Option
+                                <span className="text-[9px] font-extrabold uppercase bg-gradient-to-r from-amber-500 to-rose-600 text-white px-1.5 py-0.5 rounded tracking-wider shadow">Premium Exclusive</span>
+                              </h4>
+                              <p className="text-[10px] text-muted-text mt-0.5">
+                                Pin this property to the <strong>Top Super Hot Spotlight</strong> banner on the homepage. Limited to <strong>1 Super Hot Listing</strong> per Premium account holder out of 100 listings. ({userSuperHotCount}/1 used)
+                              </p>
+                            </div>
+                          </div>
+                          
+                          {isPremiumUser ? (
+                            <label className="relative inline-flex items-center cursor-pointer select-none">
+                              <input 
+                                type="checkbox" 
+                                checked={isSuperHot} 
+                                onChange={handleToggleSuperHot} 
+                                className="sr-only peer" 
+                              />
+                              <div className="w-9 h-5 bg-border-base peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-amber-500"></div>
+                            </label>
+                          ) : (
+                            <div className="flex items-center gap-1 text-[10px] font-bold text-amber-500 bg-amber-500/10 px-2.5 py-1 rounded-lg border border-amber-500/20 shrink-0 self-start sm:self-center">
+                              <Lock className="w-3 h-3" /> Premium Accounts Only
+                            </div>
+                          )}
+                        </div>
+                      </div>
+
+                      {/* Hot Listing Option Card */}
+                      <div className="col-span-3 pt-3">
                         <div className="flex flex-col sm:flex-row sm:items-center justify-between p-4 rounded-xl border border-rose-500/20 bg-rose-500/5 backdrop-blur-sm gap-4">
                           <div className="flex items-start space-x-3">
                             <div className="p-2 bg-rose-500/10 rounded-lg border border-rose-500/20 mt-0.5">
@@ -1105,28 +1181,28 @@ export default function AddPropertyWizard({ onSuccess }: AddPropertyWizardProps)
                             </div>
                             <div>
                               <h4 className="text-xs font-black text-foreground flex items-center gap-1.5">
-                                Hot Listing Option
+                                🔥 Hot Listing Option
                                 <span className="text-[9px] font-bold uppercase bg-rose-600 text-white px-1.5 py-0.5 rounded tracking-wider">Exclusive</span>
                               </h4>
                               <p className="text-[10px] text-muted-text mt-0.5">
-                                Mark this property as a Hot Listing to pin it with a high-visibility badge and rank it at the top of the directory.
+                                Mark as Hot Listing to rank in the Hot Deals directory section. Limited to <strong>5 Hot Listings</strong> per Premium account holder out of 100 listings. ({userHotCount}/5 used)
                               </p>
                             </div>
                           </div>
                           
-                          {isPremiumAgency ? (
+                          {isPremiumUser ? (
                             <label className="relative inline-flex items-center cursor-pointer select-none">
                               <input 
                                 type="checkbox" 
                                 checked={isHot} 
-                                onChange={(e) => setIsHot(e.target.checked)} 
+                                onChange={handleToggleHot} 
                                 className="sr-only peer" 
                               />
                               <div className="w-9 h-5 bg-border-base peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-rose-600"></div>
                             </label>
                           ) : (
                             <div className="flex items-center gap-1 text-[10px] font-bold text-rose-500 bg-rose-500/10 px-2.5 py-1 rounded-lg border border-rose-500/20 shrink-0 self-start sm:self-center">
-                              <Lock className="w-3 h-3" /> Premium Agencies Only
+                              <Lock className="w-3 h-3" /> Premium Accounts Only
                             </div>
                           )}
                         </div>

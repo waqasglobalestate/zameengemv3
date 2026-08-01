@@ -5,7 +5,7 @@ import Link from "next/link";
 import Image from "next/image";
 import { Property } from "@/data/initialProperties";
 import { useAppState } from "@/context/AppStateContext";
-import { Heart, Phone, Eye, Compass, LayoutGrid, Flame } from "lucide-react";
+import { Heart, Phone, Eye, Compass, LayoutGrid, Flame, Zap } from "lucide-react";
 
 interface PropertyCardProps {
   property: Property;
@@ -64,7 +64,13 @@ export default function PropertyCard({ property, onCompareToggle, isComparing = 
               Featured
             </span>
           )}
-          {property.isHot && (
+          {property.isSuperHot && (
+            <span className="px-2.5 py-1 text-[10px] font-extrabold uppercase tracking-wider rounded-md bg-gradient-to-r from-amber-500 via-rose-600 to-amber-500 text-white flex items-center gap-1 shadow-xl animate-pulse border border-amber-300">
+              <Zap className="w-3 h-3 fill-amber-200 text-amber-200" />
+              <span>Super Hot</span>
+            </span>
+          )}
+          {property.isHot && !property.isSuperHot && (
             <span className="px-2.5 py-1 text-[10px] font-bold uppercase tracking-wider rounded-md bg-rose-600 text-white flex items-center gap-1 shadow-lg animate-pulse">
               <Flame className="w-3 h-3 fill-white text-white" />
               <span>Hot</span>
