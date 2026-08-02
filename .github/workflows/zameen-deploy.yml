@@ -76,9 +76,6 @@ jobs:
             find . -type f -exec chmod 644 {} + 2>/dev/null || true
             chmod -R 755 _next .next public static 2>/dev/null || true
             (source ~/.profile || true)
-            (nvm install 20 || true)
-            (nvm use 20 || true)
-            (npm install --omit=dev || true)
             mkdir -p tmp
             touch tmp/restart.txt || true
             (npx pm2 restart all || true)
