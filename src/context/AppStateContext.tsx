@@ -226,6 +226,17 @@ export function AppStateProvider({ children }: { children: React.ReactNode }) {
   const [authModalDefaultTab, setAuthModalDefaultTab] = useState<"login" | "signup">("signup");
   const [adminPassword, setAdminPassword] = useState("Pass@ZGem2026/-WebSite");
 
+  // Sync state modifications to LocalStorage
+  const saveState = (key: string, data: unknown) => {
+    if (typeof window !== "undefined") {
+      try {
+        localStorage.setItem(key, JSON.stringify(data));
+      } catch (e) {
+        console.error("Local storage save error", e);
+      }
+    }
+  };
+
   // Load from localStorage on client-side mount
   useEffect(() => {
     const init = async () => {
@@ -674,16 +685,7 @@ export function AppStateProvider({ children }: { children: React.ReactNode }) {
     };
   }, []);
 
-  // Sync state modifications to LocalStorage
-  const saveState = (key: string, data: unknown) => {
-    if (typeof window !== "undefined") {
-      try {
-        localStorage.setItem(key, JSON.stringify(data));
-      } catch (e) {
-        console.error("Local storage save error", e);
-      }
-    }
-  };
+  // Sync theme changes to LocalStorage
 
   const setTheme = (newTheme: "light" | "dark") => {
     setThemeState(newTheme);
