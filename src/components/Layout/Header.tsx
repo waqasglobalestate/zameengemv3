@@ -72,8 +72,6 @@ export default function Header() {
     }
   };
 
-  if (!isLoaded) return null;
-
   return (
      <header className="sticky top-0 z-50 w-full border-b border-border-base bg-background/80 backdrop-blur-md transition-all">
       <div className="max-w-7xl mx-auto px-2 sm:px-4 lg:px-6">
