@@ -3,7 +3,7 @@
 import React, { useState } from "react";
 import Link from "next/link";
 import { useAppState } from "@/context/AppStateContext";
-import { Search, Calendar, User, Clock, ChevronRight } from "lucide-react";
+import { Search, Calendar, Clock, ChevronRight } from "lucide-react";
 
 export default function BlogLandingPage() {
   const { blogs } = useAppState();

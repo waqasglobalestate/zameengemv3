@@ -13,9 +13,6 @@ import {
   SlidersHorizontal, 
   Trash2, 
   MapPin,
-  Building2,
-  Ruler,
-  DollarSign,
   Flame
 } from "lucide-react";
 
@@ -50,20 +47,23 @@ function SearchPropertiesContent() {
 
   // Sync URL search params to local state variables on change
   useEffect(() => {
-    setPurpose(searchParams.get("purpose") || "Buy");
-    setCity(searchParams.get("city") || "");
-    setLocation(searchParams.get("location") || searchParams.get("society") || "");
-    setType(searchParams.get("type") || "");
-    setSize(searchParams.get("size") || "");
-    setPriceMax(searchParams.get("priceMax") || "");
-    setSector(searchParams.get("sector") || "");
-    setCorner(searchParams.get("corner") === "true");
-    setParkFacing(searchParams.get("parkFacing") === "true");
-    setMainBoulevard(searchParams.get("mainBoulevard") === "true");
-    setPossession(searchParams.get("possessionStatus") || "");
-    setInstallment(searchParams.get("installmentAvailable") === "true");
-    setGlobalQuery(searchParams.get("query") || "");
-    setHotOnly(searchParams.get("hotOnly") === "true");
+    const timer = setTimeout(() => {
+      setPurpose(searchParams.get("purpose") || "Buy");
+      setCity(searchParams.get("city") || "");
+      setLocation(searchParams.get("location") || searchParams.get("society") || "");
+      setType(searchParams.get("type") || "");
+      setSize(searchParams.get("size") || "");
+      setPriceMax(searchParams.get("priceMax") || "");
+      setSector(searchParams.get("sector") || "");
+      setCorner(searchParams.get("corner") === "true");
+      setParkFacing(searchParams.get("parkFacing") === "true");
+      setMainBoulevard(searchParams.get("mainBoulevard") === "true");
+      setPossession(searchParams.get("possessionStatus") || "");
+      setInstallment(searchParams.get("installmentAvailable") === "true");
+      setGlobalQuery(searchParams.get("query") || "");
+      setHotOnly(searchParams.get("hotOnly") === "true");
+    }, 0);
+    return () => clearTimeout(timer);
   }, [searchParams]);
 
   // Sorting
@@ -468,7 +468,6 @@ function SearchPropertiesContent() {
                 }
                 return `${(priceVal / 100000).toFixed(0)} Lakhs`;
               };
-              const isSaved = false; // Mocked inside
               return (
                 <div 
                   key={prop.id}

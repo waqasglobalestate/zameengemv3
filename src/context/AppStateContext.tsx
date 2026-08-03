@@ -506,7 +506,7 @@ export function AppStateProvider({ children }: { children: React.ReactNode }) {
         getUserRegistrations().then((dbRegs) => {
           if (dbRegs && dbRegs.length > 0) {
             setUsers((prevUsers) => {
-              let updatedUsers = [...prevUsers];
+              const updatedUsers = [...prevUsers];
               let hasChanges = false;
               dbRegs.forEach((reg) => {
                 const existingIdx = updatedUsers.findIndex(u => u.email.toLowerCase() === reg.email.toLowerCase());
@@ -541,7 +541,7 @@ export function AppStateProvider({ children }: { children: React.ReactNode }) {
             });
 
             setAgencies((prevAgencies) => {
-              let updatedAgencies = [...prevAgencies];
+              const updatedAgencies = [...prevAgencies];
               let hasChanges = false;
               dbRegs.filter(r => r.role === "Agency").forEach((reg) => {
                 const existingIdx = updatedAgencies.findIndex(a => a.email.toLowerCase() === reg.email.toLowerCase());
@@ -997,7 +997,7 @@ export function AppStateProvider({ children }: { children: React.ReactNode }) {
     
     try {
       sessionStorage.setItem(sessionKey, "true");
-    } catch (e) {
+    } catch {
       // Storage quota or restriction fallback
     }
 

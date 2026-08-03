@@ -35,9 +35,7 @@ import {
   Crown,
   Zap,
   AlertTriangle,
-  UserCheck,
-  UserX,
-  Building2
+  UserCheck
 } from "lucide-react";
 
 export default function DashboardPortal() {
@@ -78,7 +76,10 @@ export default function DashboardPortal() {
   useEffect(() => {
     if (typeof window !== "undefined") {
       if (localStorage.getItem("gem-needs-password") === "true") {
-        setShowSetPasswordOnboarding(true);
+        const timer = setTimeout(() => {
+          setShowSetPasswordOnboarding(true);
+        }, 0);
+        return () => clearTimeout(timer);
       }
     }
   }, []);
@@ -99,8 +100,8 @@ export default function DashboardPortal() {
       localStorage.removeItem("gem-needs-password");
       setShowSetPasswordOnboarding(false);
       alert("Password set successfully! You can now log in using your Email and Password.");
-    } catch (err: any) {
-      setOnboardingError(err.message || "Failed to set password.");
+    } catch (err) {
+      setOnboardingError(err instanceof Error ? err.message : "Failed to set password.");
     } finally {
       setOnboardingLoading(false);
     }
@@ -202,7 +203,6 @@ export default function DashboardPortal() {
       return true;
     }
     const sName = (userSession.name || "").toLowerCase();
-    const sEmail = (userSession.email || "").toLowerCase();
     const sPhone = (userSession.phone || "").replace(/[^0-9]/g, "");
 
     const aName = (p.agent?.name || "").toLowerCase();

@@ -1,6 +1,6 @@
 import React from 'react';
 import Link from 'next/link';
-import { Map, Home, Building, Calculator, FileText, Phone, UserCircle, Users, ShieldCheck } from 'lucide-react';
+import { Map, Home, Calculator, FileText, UserCircle, Users, ShieldCheck } from 'lucide-react';
 
 export default function SitemapPage() {
   const sitemapSections = [
@@ -66,7 +66,7 @@ export default function SitemapPage() {
             Site<span className="text-gold">map</span>
           </h1>
           <p className="text-lg text-muted-text max-w-2xl mx-auto">
-            Navigate through Zameen Gem's comprehensive real estate platform with ease.
+            Navigate through Zameen Gem&apos;s comprehensive real estate platform with ease.
           </p>
         </div>
 

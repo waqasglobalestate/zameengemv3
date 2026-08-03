@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect, useRef } from "react";
+import React, { useState, useEffect } from "react";
 import { useAppState } from "@/context/AppStateContext";
 import { Property } from "@/data/initialProperties";
 import { processImage, ProcessProgress, ProcessedImage } from "@/utils/imageProcessor";
@@ -8,16 +8,12 @@ import { calculateListingQuality } from "@/utils/qualityScorer";
 import { uploadPropertyMedia } from "@/utils/supabaseService";
 import { 
   Building, 
-  MapPin, 
   Sparkles, 
   Upload, 
   AlertCircle, 
   CheckCircle2, 
   Camera, 
   Loader2, 
-  Compass, 
-  ZoomIn, 
-  ZoomOut, 
   Check, 
   ChevronRight, 
   ChevronLeft,
@@ -29,7 +25,25 @@ import {
 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 
-declare let google: any;
+type GoogleMapsGeocoderResult = {
+  geometry: {
+    location: {
+      lat: () => number;
+      lng: () => number;
+    };
+  };
+};
+
+type GoogleMapsNamespace = {
+  maps: {
+    Geocoder: new () => {
+      geocode: (
+        request: { address: string },
+        callback: (results: GoogleMapsGeocoderResult[] | null, status: string) => void
+      ) => void;
+    };
+  };
+};
 
 const countriesList = [
   "Afghanistan", "Albania", "Algeria", "Andorra", "Angola", "Antigua and Barbuda", "Argentina", "Armenia", "Australia", 
@@ -100,7 +114,6 @@ interface AddPropertyWizardProps {
 export default function AddPropertyWizard({ onSuccess }: AddPropertyWizardProps) {
   const { addProperty, userSession, properties } = useAppState();
   const isPremiumUser = userSession.plan === "Pro" || userSession.role === "Admin" || userSession.role === "Agent" || userSession.role === "Agency";
-  const isPremiumAgency = isPremiumUser;
   const [step, setStep] = useState(1);
   const [validationError, setValidationError] = useState<string | null>(null);
 
@@ -251,10 +264,13 @@ export default function AddPropertyWizard({ onSuccess }: AddPropertyWizardProps)
     const fullAddress = addressParts.join(", ");
     const delayDebounceFn = setTimeout(() => {
       const apiKey = process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY;
-      if (apiKey && typeof window !== "undefined" && (window as any).google && (window as any).google.maps) {
+      const googleMaps = typeof window !== "undefined"
+        ? (window as Window & { google?: GoogleMapsNamespace }).google
+        : undefined;
+      if (apiKey && googleMaps?.maps) {
         try {
-          const geocoder = new google.maps.Geocoder();
-          geocoder.geocode({ address: fullAddress }, (results: any, status: any) => {
+          const geocoder = new googleMaps.maps.Geocoder();
+          geocoder.geocode({ address: fullAddress }, (results, status) => {
             if (status === "OK" && results && results[0]) {
               const loc = results[0].geometry.location;
               const newLat = parseFloat(loc.lat().toFixed(5));
@@ -498,7 +514,7 @@ export default function AddPropertyWizard({ onSuccess }: AddPropertyWizardProps)
     }
 
     setIsSubmitting(true);
-    let uploadedImageUrls: string[] = [];
+    const uploadedImageUrls: string[] = [];
     
     try {
       const timestamp = Date.now();

@@ -17,7 +17,6 @@ import {
   ChevronRight,
   Sparkles,
   UserCheck,
-  Mail,
   MessageSquare,
   Flame
 } from "lucide-react";
@@ -70,7 +69,7 @@ export default function PropertyDetailPage() {
     if (isLoaded && propertyId) {
       incrementViews(propertyId);
     }
-  }, [isLoaded, propertyId]);
+  }, [incrementViews, isLoaded, propertyId]);
 
   if (!isLoaded) {
     return (
@@ -104,7 +103,7 @@ export default function PropertyDetailPage() {
       navigator.clipboard.writeText(window.location.href);
       setShareCopied(true);
       setTimeout(() => setShareCopied(false), 2500);
-    } catch (e) {
+    } catch {
       alert("Failed to copy link. Please manually copy the URL bar.");
     }
   };

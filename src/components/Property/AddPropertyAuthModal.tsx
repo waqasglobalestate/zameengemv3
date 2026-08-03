@@ -1,11 +1,10 @@
 "use client";
 
 import React, { useState, useEffect } from "react";
-import { useAppState, UserSession, UserRole, UserRecord } from "@/context/AppStateContext";
+import { useAppState, UserRole, UserRecord } from "@/context/AppStateContext";
 import { 
   X, 
   User, 
-  Briefcase, 
   Award, 
   Layers, 
   Mail, 
@@ -15,7 +14,6 @@ import {
   ShieldCheck, 
   ChevronRight, 
   Loader2, 
-  CheckCircle,
   Building2,
   LogIn,
   UserPlus,
@@ -33,6 +31,18 @@ interface AddPropertyAuthModalProps {
 
 type AccountType = "seller" | "agent" | "agency" | null;
 type TabType = "signup" | "login";
+type SeededAccount = {
+  name: string;
+  email: string;
+  phone: string;
+  role: UserRole;
+  companyName: string;
+  image: string;
+  description: string;
+};
+
+const getErrorMessage = (err: unknown, fallback: string) =>
+  err instanceof Error ? err.message : fallback;
 
 export default function AddPropertyAuthModal({ isOpen, onClose }: AddPropertyAuthModalProps) {
   const { userSession, loginUser, addUser, addAgent, addAgency, adminPassword, authModalDefaultTab, users } = useAppState();
@@ -74,13 +84,8 @@ export default function AddPropertyAuthModal({ isOpen, onClose }: AddPropertyAut
   const [showLoginPassword, setShowLoginPassword] = useState(false);
   const [showSignupPassword, setShowSignupPassword] = useState(false);
 
-  // Admin password login state
-  const [adminLoginPassword, setAdminLoginPassword] = useState("");
-  const [showAdminPasswordVerify, setShowAdminPasswordVerify] = useState(false);
-  const [selectedAdminAcc, setSelectedAdminAcc] = useState<any>(null);
-
   // Pre-seeded Simulator Accounts
-  const seededAccounts = [
+  const seededAccounts: SeededAccount[] = [
     {
       name: "Muhammad Ali",
       email: "muhammad.ali@globalestate.com",
@@ -113,13 +118,16 @@ export default function AddPropertyAuthModal({ isOpen, onClose }: AddPropertyAut
   // Initialize view depending on role and default tab
   useEffect(() => {
     if (isOpen) {
-      // If the user has a professional role (Seller, Agent, Agency, Admin), show bypass screen
-      if (userSession && userSession.role !== "Buyer") {
-        setStep("loggedInAlert");
-      } else {
-        setStep("select");
-        setActiveTab(authModalDefaultTab);
-      }
+      const timer = setTimeout(() => {
+        // If the user has a professional role (Seller, Agent, Agency, Admin), show bypass screen
+        if (userSession && userSession.role !== "Buyer") {
+          setStep("loggedInAlert");
+        } else {
+          setStep("select");
+          setActiveTab(authModalDefaultTab);
+        }
+      }, 0);
+      return () => clearTimeout(timer);
     }
   }, [isOpen, userSession, authModalDefaultTab]);
 
@@ -221,15 +229,7 @@ export default function AddPropertyAuthModal({ isOpen, onClose }: AddPropertyAut
   };
 
   // Simulating Persona Login
-  const handleSeededLogin = (acc: typeof seededAccounts[0]) => {
-    if (acc.role === "Admin") {
-      setSelectedAdminAcc(acc);
-      setShowAdminPasswordVerify(true);
-      setAdminLoginPassword("");
-      setError(null);
-      return;
-    }
-
+  const handleSeededLogin = (acc: SeededAccount) => {
     setIsSubmitting(true);
     setTimeout(() => {
       loginUser({
@@ -250,36 +250,6 @@ export default function AddPropertyAuthModal({ isOpen, onClose }: AddPropertyAut
     }, 800);
   };
 
-  const handleAdminPasswordSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    if (adminLoginPassword === adminPassword) {
-      setError(null);
-      setIsSubmitting(true);
-      setTimeout(() => {
-        if (selectedAdminAcc) {
-          loginUser({
-            name: selectedAdminAcc.name,
-            email: selectedAdminAcc.email,
-            phone: selectedAdminAcc.phone,
-            role: selectedAdminAcc.role,
-            companyName: selectedAdminAcc.companyName,
-            image: selectedAdminAcc.image,
-            plan: "Free"
-          });
-        }
-        setIsSubmitting(false);
-        setStep("success");
-        setShowAdminPasswordVerify(false);
-        setTimeout(() => {
-          onClose();
-          window.location.href = "/dashboard?tab=add";
-        }, 1500);
-      }, 800);
-    } else {
-      setError("Incorrect password. Please try again.");
-    }
-  };
-
   // Google Sign Up Live Auth
   const handleGoogleSignUp = async () => {
     setGoogleLoading(true);
@@ -295,8 +265,8 @@ export default function AddPropertyAuthModal({ isOpen, onClose }: AddPropertyAut
         }
       });
       if (error) throw error;
-    } catch (err: any) {
-      setError(err.message || "Failed to initialize Google Sign-in.");
+    } catch (err) {
+      setError(getErrorMessage(err, "Failed to initialize Google Sign-in."));
       setGoogleLoading(false);
     }
   };
@@ -343,7 +313,7 @@ export default function AddPropertyAuthModal({ isOpen, onClose }: AddPropertyAut
     // Call Supabase Auth to register user
     try {
       try {
-        const { data, error: signUpErr } = await supabase.auth.signUp({
+        const { error: signUpErr } = await supabase.auth.signUp({
           email: email,
           password: password,
           options: {
@@ -420,8 +390,8 @@ export default function AddPropertyAuthModal({ isOpen, onClose }: AddPropertyAut
       setAvatarFile(null);
       setAvatarPreview(null);
 
-    } catch (err: any) {
-      setError(err.message || "Sign up failed. Please try again.");
+    } catch (err) {
+      setError(getErrorMessage(err, "Sign up failed. Please try again."));
       setIsSubmitting(false);
     }
   };
@@ -525,7 +495,7 @@ export default function AddPropertyAuthModal({ isOpen, onClose }: AddPropertyAut
 
     // 3. Live Supabase Auth login
     try {
-      const { data, error: signInErr } = await supabase.auth.signInWithPassword({
+      const { error: signInErr } = await supabase.auth.signInWithPassword({
         email: loginEmail.trim(),
         password: loginPassword
       });
@@ -559,11 +529,12 @@ export default function AddPropertyAuthModal({ isOpen, onClose }: AddPropertyAut
         window.location.href = "/dashboard";
       }, 1500);
 
-    } catch (err: any) {
-      if (err.message === "Invalid login credentials") {
+    } catch (err) {
+      const message = getErrorMessage(err, "Invalid email or password.");
+      if (message === "Invalid login credentials") {
         setError("Invalid email or password. If you recently created an account, check if your email requires confirmation or click Sign Up to register.");
       } else {
-        setError(err.message || "Invalid email or password.");
+        setError(message);
       }
       setIsSubmitting(false);
     }
@@ -610,6 +581,7 @@ export default function AddPropertyAuthModal({ isOpen, onClose }: AddPropertyAut
                 className="text-center py-6 space-y-6 flex flex-col items-center justify-center"
               >
                 <div className="w-16 h-16 rounded-full overflow-hidden border-2 border-gold shrink-0 shadow-lg">
+                  {/* eslint-disable-next-line @next/next/no-img-element */}
                   <img 
                     src={userSession.image && !userSession.image.startsWith("blob:") ? userSession.image : `https://ui-avatars.com/api/?name=${encodeURIComponent(userSession.name)}&background=c5a85c&color=fff`} 
                     alt={userSession.name} 
@@ -823,7 +795,7 @@ export default function AddPropertyAuthModal({ isOpen, onClose }: AddPropertyAut
 
                       <div className="text-center pt-2">
                         <p className="text-xs text-muted-text">
-                          Don't have an account?{" "}
+                          Don&apos;t have an account?{" "}
                           <button
                             type="button"
                             onClick={() => {

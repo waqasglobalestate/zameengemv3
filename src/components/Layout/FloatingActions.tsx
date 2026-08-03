@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useState } from "react";
-import { MessageSquare, Phone, Send, X } from "lucide-react";
+import { Phone, Send, X } from "lucide-react";
 import { useAppState } from "@/context/AppStateContext";
 
 export default function FloatingActions() {

@@ -6,6 +6,17 @@ import { generateAIResponse, ChatMessage } from "@/utils/aiEngine";
 import { MessageSquareCode, Send, Mic, MicOff, X, Bot, User, Trash2 } from "lucide-react";
 import Link from "next/link";
 
+type SpeechRecognitionConstructor = new () => {
+  continuous: boolean;
+  interimResults: boolean;
+  lang: string;
+  onstart: (() => void) | null;
+  onend: (() => void) | null;
+  onresult: ((event: { results: ArrayLike<ArrayLike<{ transcript: string }>> }) => void) | null;
+  start: () => void;
+  stop: () => void;
+};
+
 export default function AIAssistant() {
   const { properties } = useAppState();
   const [isOpen, setIsOpen] = useState(false);
@@ -45,8 +56,11 @@ export default function AIAssistant() {
   // Setup Web Speech API for voice search
   useEffect(() => {
     if (typeof window === "undefined") return;
-    const SpeechRecognition = (window as Window & { SpeechRecognition?: new() => any; webkitSpeechRecognition?: new() => any }).SpeechRecognition || 
-                            (window as Window & { SpeechRecognition?: new() => any; webkitSpeechRecognition?: new() => any }).webkitSpeechRecognition;
+    const speechWindow = window as Window & {
+      SpeechRecognition?: SpeechRecognitionConstructor;
+      webkitSpeechRecognition?: SpeechRecognitionConstructor;
+    };
+    const SpeechRecognition = speechWindow.SpeechRecognition || speechWindow.webkitSpeechRecognition;
     if (SpeechRecognition) {
       const rec = new SpeechRecognition();
       rec.continuous = false;
@@ -61,9 +75,8 @@ export default function AIAssistant() {
         setIsListening(false);
       };
  
-      rec.onresult = (event: unknown) => {
-        const speechEvent = event as { results: Array<Array<{ transcript: string }>> };
-        const transcript = speechEvent.results[0][0].transcript;
+      rec.onresult = (event) => {
+        const transcript = event.results[0][0].transcript;
         setInputText(transcript);
         handleSendMessage(transcript);
       };

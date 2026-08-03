@@ -98,7 +98,13 @@ jobs:
           port: ${{ secrets.HOSTINGER_PORT }}
           script: |
             cd domains/zameengem.com/public_html
-            # Extract deployment bundle with zip overwrite while preserving CSS fallbacks
+            # Remove generated output before extraction so HTML never points at
+            # stale or missing Next.js chunk/font hashes from an older build.
+            rm -rf _next static public/_next public/static .next 2>/dev/null || true
+            rm -rf dashboard properties agents blog contact calculators compare privacy terms images 2>/dev/null || true
+            rm -f index.html dashboard.html properties.html agents.html blog.html contact.html calculators.html compare.html privacy.html terms.html 2>/dev/null || true
+
+            # Extract deployment bundle with a clean generated output surface.
             unzip -o deploy.zip
             rm -f deploy.zip
             find . -type d -exec chmod 755 {} + 2>/dev/null || true

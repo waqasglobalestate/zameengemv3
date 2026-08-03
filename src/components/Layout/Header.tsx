@@ -3,11 +3,11 @@
 import React, { useState, useEffect } from "react";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
-import { useAppState, UserRole } from "@/context/AppStateContext";
-import { Menu, X, Sun, Moon, User, Briefcase, Award, Shield, Layers, LogOut, Search } from "lucide-react";
+import { useAppState } from "@/context/AppStateContext";
+import { Menu, X, Sun, Moon, User, Layers, LogOut, Search } from "lucide-react";
 
 export default function Header() {
-  const { theme, setTheme, userSession, setUserRole, isLoaded, setIsAuthModalOpen, logoutUser, adminPassword, setAuthModalDefaultTab } = useAppState();
+  const { theme, setTheme, userSession, setIsAuthModalOpen, logoutUser, setAuthModalDefaultTab } = useAppState();
   const [isOpen, setIsOpen] = useState(false);
   const [showRoleMenu, setShowRoleMenu] = useState(false);
   const [globalSearch, setGlobalSearch] = useState("");
@@ -45,24 +45,6 @@ export default function Header() {
     { name: "Blog", href: "/blog" },
     { name: "Contact", href: "/contact" }
   ];
-
-  const roles: { role: UserRole; label: string; icon: React.ReactNode }[] = [
-    { role: "Agent", label: "Agent Portal", icon: <Award className="w-4 h-4 text-orange-500" /> },
-    { role: "Agency", label: "Agency Portal", icon: <Layers className="w-4 h-4 text-purple-500" /> },
-    { role: "Admin", label: "Super Admin Dashboard", icon: <Shield className="w-4 h-4 text-red-500" /> }
-  ];
-
-  const handleRoleChange = (role: UserRole) => {
-    if (role === "Admin") {
-      const pass = prompt("Enter Super Admin password (default: Pass@ZGem2026/-WebSite):");
-      if (pass !== adminPassword && pass !== "admin123") {
-        alert("Incorrect password. Access denied.");
-        return;
-      }
-    }
-    setUserRole(role);
-    setShowRoleMenu(false);
-  };
 
   const handleLogout = () => {
     logoutUser();
@@ -339,7 +321,7 @@ export default function Header() {
           {userSession.role === "Buyer" ? (
             <div className="px-3">
               <button
-                onClick={(e) => {
+                onClick={() => {
                   setIsOpen(false);
                   setAuthModalDefaultTab("login");
                   setIsAuthModalOpen(true);

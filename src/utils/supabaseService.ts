@@ -1,23 +1,38 @@
 import { supabase } from "./supabaseClient";
 import { Property } from "@/data/initialProperties";
 
+type DbRecord = Record<string, unknown>;
+
+const asString = (value: unknown, fallback = ""): string =>
+  typeof value === "string" ? value : value == null ? fallback : String(value);
+
+const asNumber = (value: unknown, fallback = 0): number => {
+  const parsed = Number(value);
+  return Number.isFinite(parsed) ? parsed : fallback;
+};
+
+const asBoolean = (value: unknown): boolean => value === true;
+
 // Helper to map DB row to frontend Property model
-function mapDbRowToProperty(row: any, mediaRows: any[]): Property {
+function mapDbRowToProperty(row: DbRecord, mediaRows: DbRecord[]): Property {
+  const rowId = asString(row.id);
+  const contactPhone = asString(row.contact_phone);
+  const viewsCount = asNumber(row.views_count);
   const images = mediaRows
-    .filter((m) => m.property_id === row.id)
-    .sort((a, b) => (a.sort_order || 0) - (b.sort_order || 0))
-    .map((m) => m.url);
+    .filter((m) => asString(m.property_id) === rowId)
+    .sort((a, b) => asNumber(a.sort_order) - asNumber(b.sort_order))
+    .map((m) => asString(m.url));
     
   if (images.length === 0) {
     images.push("https://images.unsplash.com/photo-1500382017468-9049fed747ef?auto=format&fit=crop&w=600&q=80");
   }
 
   // Parse area
-  const areaValue = Number(row.area || 10);
+  const areaValue = asNumber(row.area, 10);
   const areaUnitLabel = row.area_unit === "kanal" ? "Kanal" : "Marla";
 
   // Parse premium and hot status
-  const rawName = row.contact_name || "";
+  const rawName = asString(row.contact_name);
   const isHot = rawName.includes(" | HOT");
   const isPremium = rawName.includes(" | PRO");
   let cleanName = rawName;
@@ -26,55 +41,55 @@ function mapDbRowToProperty(row: any, mediaRows: any[]): Property {
   cleanName = cleanName.trim();
 
   return {
-    id: row.id,
-    title: row.title,
-    price: Number(row.price),
-    location: row.society,
-    sector: row.sector || "",
-    type: mapDbTypeToPropertyType(row.type),
+    id: rowId,
+    title: asString(row.title),
+    price: asNumber(row.price),
+    location: asString(row.society),
+    sector: asString(row.sector),
+    type: mapDbTypeToPropertyType(asString(row.type)),
     size: `${areaValue} ${areaUnitLabel}`,
-    bedrooms: row.bedrooms || undefined,
-    bathrooms: row.bathrooms || undefined,
-    floors: row.floors || undefined,
-    furnishedStatus: mapDbFurnishedToStatus(row.furnished),
-    description: row.description,
+    bedrooms: row.bedrooms ? asNumber(row.bedrooms) : undefined,
+    bathrooms: row.bathrooms ? asNumber(row.bathrooms) : undefined,
+    floors: row.floors ? asNumber(row.floors) : undefined,
+    furnishedStatus: mapDbFurnishedToStatus(asString(row.furnished)),
+    description: asString(row.description),
     images: images,
     agent: {
       name: cleanName,
-      phone: row.contact_phone,
-      whatsapp: row.contact_phone.replace(/[^0-9]/g, ""),
+      phone: contactPhone,
+      whatsapp: contactPhone.replace(/[^0-9]/g, ""),
       image: cleanName.toLowerCase().includes("waqas")
         ? "/images/waqas_ceo.png"
         : `https://ui-avatars.com/api/?name=${encodeURIComponent(cleanName)}&background=c5a85c&color=fff`,
       experience: row.contact_type === "owner" ? "Private Submitter" : isPremium ? "Premium Partner" : "Certified Partner"
     },
     amenities: [
-      ...(row.is_corner ? ["Corner Plot"] : []),
-      ...(row.is_park_facing ? ["Park Facing"] : []),
-      ...(row.is_main_boulevard ? ["Main Boulevard Facing"] : [])
+      ...(asBoolean(row.is_corner) ? ["Corner Plot"] : []),
+      ...(asBoolean(row.is_park_facing) ? ["Park Facing"] : []),
+      ...(asBoolean(row.is_main_boulevard) ? ["Main Boulevard Facing"] : [])
     ],
-    purpose: mapDbPurposeToPurpose(row.purpose),
-    isFeatured: Number(row.views_count) > 400 || isPremium,
+    purpose: mapDbPurposeToPurpose(asString(row.purpose)),
+    isFeatured: viewsCount > 400 || isPremium,
     isPremium: isPremium,
     isHot: isHot,
-    isCorner: row.is_corner,
-    isParkFacing: row.is_park_facing,
-    isMainBoulevard: row.is_main_boulevard,
+    isCorner: asBoolean(row.is_corner),
+    isParkFacing: asBoolean(row.is_park_facing),
+    isMainBoulevard: asBoolean(row.is_main_boulevard),
     possessionStatus: row.possession === "possession" ? "Possession" : "Non-Possession",
-    installmentAvailable: row.installment_available,
-    installmentDetails: row.installment_available ? {
-      downPayment: Number(row.down_payment || 0),
-      monthlyInstallment: Number(row.monthly_installment_amount || 0),
+    installmentAvailable: asBoolean(row.installment_available),
+    installmentDetails: asBoolean(row.installment_available) ? {
+      downPayment: asNumber(row.down_payment),
+      monthlyInstallment: asNumber(row.monthly_installment_amount),
       durationMonths: 24
     } : undefined,
     contactDetails: {
-      type: mapDbContactType(row.contact_type),
+      type: mapDbContactType(asString(row.contact_type)),
       name: cleanName,
-      phone: row.contact_phone,
-      agencyName: row.agency_name || undefined
+      phone: contactPhone,
+      agencyName: row.agency_name ? asString(row.agency_name) : undefined
     },
-    createdAt: row.created_at ? new Date(row.created_at).toISOString().split("T")[0] : new Date().toISOString().split("T")[0],
-    isApproved: row.is_approved,
+    createdAt: row.created_at ? new Date(asString(row.created_at)).toISOString().split("T")[0] : new Date().toISOString().split("T")[0],
+    isApproved: asBoolean(row.is_approved),
     roiPotential: row.purpose === "sell" ? "9.5%" : "4.8%",
     nearby: {
       schools: "DHA School System (3 mins)",
@@ -82,7 +97,7 @@ function mapDbRowToProperty(row: any, mediaRows: any[]): Property {
       mosques: "Sector Mosque (2 mins)",
       markets: "Commercial Market (3 mins)"
     },
-    viewsCount: row.views_count || 0
+    viewsCount
   };
 }
 
@@ -160,7 +175,7 @@ export async function insertSupabaseProperty(p: Omit<Property, "id" | "viewsCoun
 
     const { data: authData } = await supabase.auth.getUser();
 
-    const row: any = {
+    const row: DbRecord = {
       title: p.title,
       description: p.description,
       purpose: p.purpose === "Buy" ? "sell" : "rent",
@@ -229,7 +244,7 @@ export async function insertSupabaseProperty(p: Omit<Property, "id" | "viewsCoun
  */
 export async function uploadPropertyMedia(file: Blob, path: string): Promise<string> {
   try {
-    const { data, error } = await supabase.storage
+    const { error } = await supabase.storage
       .from("properties")
       .upload(path, file, {
         cacheControl: "3600",
@@ -356,5 +371,4 @@ export async function incrementPropertyViews(propertyId: string): Promise<void> 
     console.warn("Supabase property views_count increment error:", err);
   }
 }
-
 
