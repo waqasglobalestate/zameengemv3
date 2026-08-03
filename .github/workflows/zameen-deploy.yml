@@ -76,7 +76,7 @@ jobs:
           cp -r public/images/* images/ || true
 
       - name: Zip Files for Transfer
-        run: zip -r deploy.zip . -x "node_modules/*" ".git/*" ".github/*" "deploy.zip"
+        run: zip -r deploy.zip . -x "node_modules/*" ".git/*" ".github/*" ".next/cache/*" "deploy.zip"
 
       - name: Upload to Hostinger via SCP
         uses: appleboy/scp-action@v0.1.7
@@ -88,6 +88,7 @@ jobs:
           source: "deploy.zip"
           target: "domains/zameengem.com/public_html"
           overwrite: true
+          timeout: 120s
 
       - name: Extract and Install on Hostinger Server
         uses: appleboy/ssh-action@v1.0.3
