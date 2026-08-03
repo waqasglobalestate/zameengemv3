@@ -112,9 +112,5 @@ jobs:
             find . -type f -exec chmod 644 {} + 2>/dev/null || true
             chmod -R 755 _next .next public static images 2>/dev/null || true
             touch index.html dashboard.html properties.html agents.html blog.html contact.html calculators.html compare.html privacy.html terms.html 2>/dev/null || true
-            rm -rf ../.lscache 2>/dev/null || true
-            (source ~/.profile || true)
             mkdir -p tmp
             touch tmp/restart.txt || true
-            (npx pm2 restart all || true)
-            (pm2 reload all || true)
