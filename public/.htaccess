@@ -1,6 +1,12 @@
 # Enable Options
 Options -Indexes +FollowSymLinks
 
+# Disable LiteSpeed Web Server Cache for HTML pages to guarantee fresh index.html
+<IfModule mod_litespeed.c>
+  CacheDisable public /
+  CacheDisable private /
+</IfModule>
+
 # Hostinger LiteSpeed / Apache Clean URL Routing & Static Asset Rules
 <IfModule mod_rewrite.c>
   RewriteEngine On
@@ -34,10 +40,11 @@ Options -Indexes +FollowSymLinks
   AddType image/avif .avif
 </IfModule>
 
-# Disable LiteSpeed / Apache HTML Caching so browsers always fetch latest HTML with valid CSS hashes
+# Disable LiteSpeed & Apache HTML Caching so browsers always fetch latest HTML with valid JS/CSS hashes
 <FilesMatch "\.(html|htm)$">
   <IfModule mod_headers.c>
-    Header set Cache-Control "no-cache, no-store, must-revalidate, max-age=0"
+    Header set X-LiteSpeed-Cache-Control "no-cache"
+    Header set Cache-Control "no-cache, no-store, must-revalidate, max-age=0, private"
     Header set Pragma "no-cache"
     Header set Expires "0"
   </IfModule>
