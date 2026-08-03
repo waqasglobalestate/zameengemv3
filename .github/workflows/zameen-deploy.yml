@@ -17,7 +17,7 @@ jobs:
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: '20'
+          node-version: '22'
 
       - name: Install Dependencies
         run: npm install
@@ -26,16 +26,17 @@ jobs:
         env:
           NEXT_PUBLIC_SUPABASE_URL: ${{ secrets.NEXT_PUBLIC_SUPABASE_URL }}
           NEXT_PUBLIC_SUPABASE_ANON_KEY: ${{ secrets.NEXT_PUBLIC_SUPABASE_ANON_KEY }}
+          NEXT_TELEMETRY_DISABLED: 1
         run: |
           npm run build
           rm -rf _next public/_next static public/static
           mkdir -p _next/static public/_next/static static public/static
-          cp -r .next/static/* _next/static/
-          cp -r .next/static/* _next/
-          cp -r .next/static/* public/_next/static/
-          cp -r .next/static/* public/_next/
-          cp -r .next/static/* static/
-          cp -r .next/static/* public/static/
+          cp -r .next/static/* _next/static/ || true
+          cp -r .next/static/* _next/ || true
+          cp -r .next/static/* public/_next/static/ || true
+          cp -r .next/static/* public/_next/ || true
+          cp -r .next/static/* static/ || true
+          cp -r .next/static/* public/static/ || true
           # Copy pre-rendered HTML files both as route.html and route/index.html for 100% clean URL routing
           cp .next/server/app/index.html index.html || true
           cp .next/server/app/index.html public/index.html || true
