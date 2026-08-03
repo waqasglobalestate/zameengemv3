@@ -97,7 +97,7 @@ jobs:
           port: ${{ secrets.HOSTINGER_PORT }}
           script: |
             cd domains/zameengem.com/public_html
-            rm -rf .next _next static public/_next public/static index.html properties.html dashboard.html agents.html blog.html contact.html calculators.html compare.html
+            # Extract deployment bundle with zip overwrite while preserving CSS fallbacks
             unzip -o deploy.zip
             rm -f deploy.zip
             find . -type d -exec chmod 755 {} + 2>/dev/null || true
