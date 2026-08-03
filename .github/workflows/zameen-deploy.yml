@@ -29,8 +29,10 @@ jobs:
         run: |
           npm run build
           rm -rf _next public/_next static public/static
-          mkdir -p _next public/_next static public/static
+          mkdir -p _next/static public/_next/static static public/static
+          cp -r .next/static/* _next/static/
           cp -r .next/static/* _next/
+          cp -r .next/static/* public/_next/static/
           cp -r .next/static/* public/_next/
           cp -r .next/static/* static/
           cp -r .next/static/* public/static/

@@ -1,0 +1,30 @@
+# Enable Options
+Options -Indexes
+
+# Ensure Hostinger / LiteSpeed / Apache serves static assets directly without rewriting or 404s
+<IfModule mod_rewrite.c>
+  RewriteEngine On
+
+  # Pass static asset paths directly
+  RewriteRule ^_next/ - [L]
+  RewriteRule ^\.next/ - [L]
+  RewriteRule ^static/ - [L]
+</IfModule>
+
+# Set correct MIME types for CSS & JS chunks
+<IfModule mod_mime.c>
+  AddType text/css .css
+  AddType application/javascript .js .mjs
+  AddType application/json .json
+  AddType image/svg+xml .svg
+  AddType image/webp .webp
+  AddType image/avif .avif
+</IfModule>
+
+# Enable Browser Caching & CORS for static assets
+<IfModule mod_headers.c>
+  <FilesMatch "\.(css|js|mjs|svg|webp|avif|woff2)$">
+    Header set Access-Control-Allow-Origin "*"
+    Header set Cache-Control "public, max-age=31536000, immutable"
+  </FilesMatch>
+</IfModule>
