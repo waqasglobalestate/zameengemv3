@@ -47,6 +47,9 @@ jobs:
           cp .next/server/app/contact.html contact.html || true
           cp .next/server/app/calculators.html calculators.html || true
           cp .next/server/app/compare.html compare.html || true
+          # Ensure image assets exist at root /images/ and /public/images/
+          mkdir -p images public/images
+          cp -r public/images/* images/ || true
 
       - name: Zip Files for Transfer
         run: zip -r deploy.zip . -x "node_modules/*" ".git/*" ".github/*" "deploy.zip"
@@ -76,7 +79,7 @@ jobs:
             rm -f deploy.zip
             chmod -R 755 .
             find . -type f -exec chmod 644 {} + 2>/dev/null || true
-            chmod -R 755 _next .next public static 2>/dev/null || true
+            chmod -R 755 _next .next public static images 2>/dev/null || true
             (source ~/.profile || true)
             mkdir -p tmp
             touch tmp/restart.txt || true
