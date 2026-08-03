@@ -67,7 +67,7 @@ export default function Header() {
   const handleLogout = () => {
     logoutUser();
     setShowRoleMenu(false);
-    if (pathname.startsWith("/dashboard")) {
+    if (pathname?.startsWith("/dashboard")) {
       window.location.href = "/";
     }
   };
@@ -106,7 +106,7 @@ export default function Header() {
           {/* Desktop Navigation Links */}
           <nav className="hidden lg:flex items-center gap-x-2 xl:gap-x-4 shrink-0">
             {navLinks.map((link) => {
-              const isActive = pathname === link.href || (link.href !== "/" && pathname.startsWith(link.href));
+              const isActive = pathname ? (pathname === link.href || (link.href !== "/" && pathname.startsWith(link.href))) : false;
               return (
                 <Link
                   key={link.name}
@@ -299,7 +299,7 @@ export default function Header() {
           </form>
           <div className="flex flex-col space-y-2">
             {navLinks.map((link) => {
-              const isActive = pathname === link.href || (link.href !== "/" && pathname.startsWith(link.href));
+              const isActive = pathname ? (pathname === link.href || (link.href !== "/" && pathname.startsWith(link.href))) : false;
               return (
                 <Link
                   key={link.name}
