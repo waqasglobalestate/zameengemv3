@@ -100,7 +100,7 @@ jobs:
             rm -rf .next _next static public/_next public/static index.html properties.html dashboard.html agents.html blog.html contact.html calculators.html compare.html
             unzip -o deploy.zip
             rm -f deploy.zip
-            chmod -R 755 .
+            find . -type d -exec chmod 755 {} + 2>/dev/null || true
             find . -type f -exec chmod 644 {} + 2>/dev/null || true
             chmod -R 755 _next .next public static images 2>/dev/null || true
             (source ~/.profile || true)
