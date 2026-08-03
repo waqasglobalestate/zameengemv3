@@ -36,17 +36,40 @@ jobs:
           cp -r .next/static/* public/_next/
           cp -r .next/static/* static/
           cp -r .next/static/* public/static/
+          # Copy pre-rendered HTML files both as route.html and route/index.html for 100% clean URL routing
           cp .next/server/app/index.html index.html || true
           cp .next/server/app/index.html public/index.html || true
-          cp .next/server/app/properties.html properties.html || true
-          cp .next/server/app/properties.html public/properties.html || true
+          
+          mkdir -p dashboard properties agents blog contact calculators compare privacy terms
           cp .next/server/app/dashboard.html dashboard.html || true
+          cp .next/server/app/dashboard.html dashboard/index.html || true
           cp .next/server/app/dashboard.html public/dashboard.html || true
+          
+          cp .next/server/app/properties.html properties.html || true
+          cp .next/server/app/properties.html properties/index.html || true
+          cp .next/server/app/properties.html public/properties.html || true
+          
           cp .next/server/app/agents.html agents.html || true
+          cp .next/server/app/agents.html agents/index.html || true
+          
           cp .next/server/app/blog.html blog.html || true
+          cp .next/server/app/blog.html blog/index.html || true
+          
           cp .next/server/app/contact.html contact.html || true
+          cp .next/server/app/contact.html contact/index.html || true
+          
           cp .next/server/app/calculators.html calculators.html || true
+          cp .next/server/app/calculators.html calculators/index.html || true
+          
           cp .next/server/app/compare.html compare.html || true
+          cp .next/server/app/compare.html compare/index.html || true
+          
+          cp .next/server/app/privacy.html privacy.html || true
+          cp .next/server/app/privacy.html privacy/index.html || true
+          
+          cp .next/server/app/terms.html terms.html || true
+          cp .next/server/app/terms.html terms/index.html || true
+
           # Ensure image assets exist at root /images/ and /public/images/
           mkdir -p images public/images
           cp -r public/images/* images/ || true

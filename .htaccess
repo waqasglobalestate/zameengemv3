@@ -1,14 +1,28 @@
 # Enable Options
-Options -Indexes
+Options -Indexes +FollowSymLinks
 
-# Ensure Hostinger / LiteSpeed / Apache serves static assets directly without rewriting or 404s
+# Hostinger LiteSpeed / Apache Clean URL Routing & Static Asset Rules
 <IfModule mod_rewrite.c>
   RewriteEngine On
+  RewriteBase /
+
+  # Do not rewrite existing files or directories
+  RewriteCond %{REQUEST_FILENAME} -f [OR]
+  RewriteCond %{REQUEST_FILENAME} -d
+  RewriteRule ^ - [L]
 
   # Pass static asset paths directly
   RewriteRule ^_next/ - [L]
   RewriteRule ^\.next/ - [L]
   RewriteRule ^static/ - [L]
+  RewriteRule ^images/ - [L]
+
+  # Rewrite clean route URLs to corresponding .html files if they exist (e.g. /dashboard -> /dashboard.html)
+  RewriteCond %{DOCUMENT_ROOT}/$1.html -f
+  RewriteRule ^([^/]+)/?$ $1.html [L]
+
+  # Fallback to index.html for client-side routing on Next.js dynamic subpages
+  RewriteRule ^ index.html [L]
 </IfModule>
 
 # Set correct MIME types for CSS & JS chunks
