@@ -2,7 +2,7 @@
 
 import React, { useState } from "react";
 import { useAppState, AgencyRecord } from "@/context/AppStateContext";
-import { Search, Plus, Trash2, CheckCircle2, UserX, UserCheck, X, Phone, Mail, ShieldAlert, Eye, Calendar, Building2, ExternalLink, FileText, Flame } from "lucide-react";
+import { Search, Plus, Trash2, CheckCircle2, UserX, UserCheck, X, Phone, Mail, ShieldAlert, Eye, Calendar, Building2, ExternalLink, FileText, Flame, Ban } from "lucide-react";
 
 export default function AdminAgencies() {
   const { 
@@ -11,7 +11,9 @@ export default function AdminAgencies() {
     updateAgencyStatus, 
     deleteAgency,
     users,
-    properties
+    properties,
+    suspendProperty,
+    deleteProperty
   } = useAppState();
 
   const [searchQuery, setSearchQuery] = useState("");
@@ -507,8 +509,9 @@ export default function AdminAgencies() {
 
               {/* Right Column: Uploaded Listings list */}
               <div className="flex flex-col h-[400px] border border-border-base/60 bg-muted-bg/5 rounded-xl p-4 overflow-hidden">
-                <h4 className="text-[11px] font-black uppercase text-gold tracking-widest border-b border-border-base/30 pb-1.5 mb-3 shrink-0">
-                  Affiliated Properties Listings
+                <h4 className="text-[11px] font-black uppercase text-gold tracking-widest border-b border-border-base/30 pb-1.5 mb-3 shrink-0 flex justify-between items-center">
+                  <span>Affiliated Properties Listings</span>
+                  <span className="text-[9px] text-muted-text font-normal">Super Admin Control</span>
                 </h4>
                 
                 <div className="flex-1 overflow-y-auto space-y-3 pr-1">
@@ -517,6 +520,7 @@ export default function AdminAgencies() {
                     const agencyListings = properties.filter((p) => {
                       return (
                         p.contactDetails?.agencyName?.toLowerCase() === selectedAgency.name.toLowerCase() ||
+                        (p.createdByEmail && p.createdByEmail.toLowerCase() === selectedAgency.email.toLowerCase()) ||
                         (matchedUser && p.agent.name.toLowerCase() === matchedUser.name.toLowerCase()) ||
                         (matchedUser && p.contactDetails?.name?.toLowerCase() === matchedUser.name.toLowerCase())
                       );
@@ -532,7 +536,7 @@ export default function AdminAgencies() {
                     }
 
                     return agencyListings.map((prop) => (
-                      <div key={prop.id} className="flex items-center justify-between p-2 rounded-lg bg-muted-bg/40 border border-border-base/35 hover:bg-muted-bg/70 transition-colors gap-3">
+                      <div key={prop.id} className="flex flex-col sm:flex-row sm:items-center justify-between p-2.5 rounded-lg bg-muted-bg/40 border border-border-base/35 hover:bg-muted-bg/70 transition-colors gap-3">
                         <div className="flex items-center space-x-3 min-w-0">
                           <div className="w-12 h-10 rounded overflow-hidden border border-border-base shrink-0 bg-black/10">
                             {/* eslint-disable-next-line @next/next/no-img-element */}
@@ -541,40 +545,71 @@ export default function AdminAgencies() {
                           <div className="min-w-0">
                             <h5 className="text-[11px] font-black truncate text-foreground leading-tight" title={prop.title}>{prop.title}</h5>
                             <p className="text-[10px] text-muted-text truncate mt-0.5">{prop.location}</p>
-                            <p className="text-[9px] text-gold font-bold mt-0.5">
-                              PKR {prop.price >= 10000000 ? `${(prop.price / 10000000).toFixed(2)} Crore` : `${(prop.price / 100000).toFixed(1)} Lakh`}
-                            </p>
+                            <div className="flex items-center gap-1.5 mt-1">
+                              <span className="text-[9px] text-gold font-bold">
+                                PKR {prop.price >= 10000000 ? `${(prop.price / 10000000).toFixed(2)} Crore` : `${(prop.price / 100000).toFixed(1)} Lakh`}
+                              </span>
+                              {prop.isSuspended ? (
+                                <span className="px-1.5 py-0.2 text-[8px] font-black uppercase rounded bg-red-500/10 text-red-500 border border-red-500/25">
+                                  Suspended
+                                </span>
+                              ) : prop.isApproved === false ? (
+                                <span className="px-1.5 py-0.2 text-[8px] font-black uppercase rounded bg-amber-500/10 text-amber-500 border border-amber-500/25">
+                                  Pending
+                                </span>
+                              ) : (
+                                <span className="px-1.5 py-0.2 text-[8px] font-black uppercase rounded bg-emerald-500/10 text-emerald-500 border border-emerald-500/25">
+                                  Active
+                                </span>
+                              )}
+                            </div>
                           </div>
                         </div>
-                        <div className="text-right shrink-0 flex flex-col items-end gap-1">
-                          <div className="flex gap-1 items-center">
-                            <span className={`px-1.5 py-0.5 text-[8px] font-bold uppercase rounded text-white ${
-                              prop.purpose === "Buy" ? "bg-royal" : prop.purpose === "Rent" ? "bg-amber-600" : "bg-emerald-600"
-                            }`}>
-                              {prop.purpose}
-                            </span>
-                            {prop.isHot && (
-                              <span className="px-1 py-0.5 text-[8px] font-bold uppercase rounded bg-rose-600 text-white flex items-center gap-0.5">
-                                <Flame className="w-2.5 h-2.5 fill-white text-white" />
-                                <span>HOT</span>
-                              </span>
-                            )}
+
+                        <div className="text-right shrink-0 flex sm:flex-col items-end justify-between sm:justify-center gap-1.5 pt-2 sm:pt-0 border-t sm:border-t-0 border-border-base/30">
+                          <div className="flex items-center space-x-1.5">
+                            {/* Suspend Property button */}
+                            <button
+                              type="button"
+                              onClick={() => {
+                                suspendProperty(prop.id);
+                              }}
+                              className={`py-0.5 px-2 text-[9px] font-extrabold rounded flex items-center space-x-1 cursor-pointer transition-colors border ${
+                                prop.isSuspended
+                                  ? "bg-emerald-500/10 text-emerald-500 border-emerald-500/30 hover:bg-emerald-500/20"
+                                  : "bg-red-500/10 text-red-500 border-red-500/30 hover:bg-red-500/20"
+                              }`}
+                              title={prop.isSuspended ? "Activate Property Listing" : "Suspend Property Listing"}
+                            >
+                              <Ban className="w-2.5 h-2.5" />
+                              <span>{prop.isSuspended ? "Activate" : "Suspend"}</span>
+                            </button>
+
+                            {/* Delete Property button */}
+                            <button
+                              type="button"
+                              onClick={() => {
+                                if (confirm(`Are you sure you want to permanently delete property listing "${prop.title}"?`)) {
+                                  deleteProperty(prop.id);
+                                }
+                              }}
+                              className="py-0.5 px-2 bg-red-600/10 hover:bg-red-600 hover:text-white text-red-600 font-extrabold text-[9px] rounded flex items-center space-x-1 cursor-pointer transition-colors border border-red-600/20"
+                              title="Delete Property Listing"
+                            >
+                              <Trash2 className="w-2.5 h-2.5" />
+                              <span>Delete</span>
+                            </button>
+
+                            <a 
+                              href={`/properties/${prop.id}`} 
+                              target="_blank" 
+                              rel="noopener noreferrer"
+                              className="py-0.5 px-2 bg-royal/10 text-royal dark:text-white font-extrabold text-[9px] rounded flex items-center space-x-0.5 hover:underline cursor-pointer border border-royal/20"
+                            >
+                              <span>Inspect</span>
+                              <ExternalLink className="w-2.5 h-2.5" />
+                            </a>
                           </div>
-                          
-                          <div className="text-[9px] text-muted-text font-medium flex items-center gap-1">
-                            <Calendar className="w-2.5 h-2.5" />
-                            <span>{prop.createdAt || "2026-07-20"}</span>
-                          </div>
-                          
-                          <a 
-                            href={`/properties/${prop.id}`} 
-                            target="_blank" 
-                            rel="noopener noreferrer"
-                            className="text-[9px] font-black text-royal dark:text-white flex items-center space-x-0.5 hover:underline cursor-pointer"
-                          >
-                            <span>Inspect</span>
-                            <ExternalLink className="w-2.5 h-2.5" />
-                          </a>
                         </div>
                       </div>
                     ));
@@ -585,31 +620,68 @@ export default function AdminAgencies() {
             </div>
 
             {/* Footer buttons */}
-            <div className="flex justify-end space-x-3 pt-6 border-t border-border-base/50 mt-6">
+            <div className="flex flex-wrap justify-between items-center gap-3 pt-6 border-t border-border-base/50 mt-6">
               
-              {/* Approve button inside modal if pending */}
-              {selectedAgency.status === "Pending" && (
+              {/* Left footer actions: Suspend/Activate Agency & Delete Agency */}
+              <div className="flex items-center space-x-2">
                 <button
                   type="button"
                   onClick={() => {
-                    updateAgencyStatus(selectedAgency.id, "Active");
-                    setSelectedAgency({ ...selectedAgency, status: "Active" });
-                    alert(`Agency "${selectedAgency.name}" has been approved successfully.`);
+                    const nextStatus = selectedAgency.status === "Active" ? "Suspended" : "Active";
+                    updateAgencyStatus(selectedAgency.id, nextStatus);
+                    setSelectedAgency({ ...selectedAgency, status: nextStatus });
                   }}
-                  className="py-2 px-4 bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs rounded-lg flex items-center space-x-1 cursor-pointer transition-colors shadow-md"
+                  className={`px-3 py-1.5 text-xs font-bold rounded-lg flex items-center space-x-1.5 transition-colors border ${
+                    selectedAgency.status === "Active"
+                      ? "bg-red-500/10 text-red-500 border-red-500/20 hover:bg-red-500/20"
+                      : "bg-emerald-500/10 text-emerald-500 border-emerald-500/20 hover:bg-emerald-500/20"
+                  }`}
                 >
-                  <CheckCircle2 className="w-4 h-4" />
-                  <span>Approve Firm</span>
+                  {selectedAgency.status === "Active" ? <UserX className="w-3.5 h-3.5" /> : <UserCheck className="w-3.5 h-3.5" />}
+                  <span>{selectedAgency.status === "Active" ? "Suspend Firm" : "Activate Firm"}</span>
                 </button>
-              )}
 
-              <button
-                type="button"
-                onClick={() => setSelectedAgency(null)}
-                className="px-5 py-2 bg-muted-bg border border-border-base rounded-lg text-xs font-bold text-foreground hover:bg-border-base transition-colors"
-              >
-                Close Details
-              </button>
+                <button
+                  type="button"
+                  onClick={() => {
+                    if (confirm(`Are you sure you want to delete agency "${selectedAgency.name}"?`)) {
+                      deleteAgency(selectedAgency.id);
+                      setSelectedAgency(null);
+                    }
+                  }}
+                  className="px-3 py-1.5 text-xs font-bold rounded-lg text-red-600 bg-red-600/10 hover:bg-red-600 hover:text-white transition-colors flex items-center space-x-1.5 border border-red-600/20"
+                >
+                  <Trash2 className="w-3.5 h-3.5" />
+                  <span>Delete Agency</span>
+                </button>
+              </div>
+
+              {/* Right footer: Approve & Close */}
+              <div className="flex items-center space-x-3">
+                {selectedAgency.status === "Pending" && (
+                  <button
+                    type="button"
+                    onClick={() => {
+                      updateAgencyStatus(selectedAgency.id, "Active");
+                      setSelectedAgency({ ...selectedAgency, status: "Active" });
+                      alert(`Agency "${selectedAgency.name}" has been approved successfully.`);
+                    }}
+                    className="py-2 px-4 bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs rounded-lg flex items-center space-x-1 cursor-pointer transition-colors shadow-md"
+                  >
+                    <CheckCircle2 className="w-4 h-4" />
+                    <span>Approve Firm</span>
+                  </button>
+                )}
+
+                <button
+                  type="button"
+                  onClick={() => setSelectedAgency(null)}
+                  className="px-5 py-2 bg-muted-bg border border-border-base rounded-lg text-xs font-bold text-foreground hover:bg-border-base transition-colors"
+                >
+                  Close Details
+                </button>
+              </div>
+
             </div>
 
           </div>

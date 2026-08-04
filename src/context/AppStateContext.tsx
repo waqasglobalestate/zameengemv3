@@ -159,6 +159,7 @@ interface AppStateContextProps {
   addProperty: (property: Omit<Property, "id" | "viewsCount">) => void;
   approveProperty: (id: string) => void;
   rejectProperty: (id: string) => void;
+  suspendProperty: (id: string, isSuspended?: boolean) => void;
   updateProperty: (property: Property) => void;
   deleteProperty: (id: string) => void;
   addInquiry: (inquiry: Omit<Inquiry, "id" | "status" | "createdAt">) => void;
@@ -899,6 +900,18 @@ export function AppStateProvider({ children }: { children: React.ReactNode }) {
     saveState("gem-properties", updatedListings);
   };
 
+  const suspendProperty = (id: string, isSuspended?: boolean) => {
+    const updatedListings = properties.map((p) => {
+      if (p.id === id) {
+        const nextSuspended = isSuspended !== undefined ? isSuspended : !p.isSuspended;
+        return { ...p, isSuspended: nextSuspended };
+      }
+      return p;
+    });
+    setProperties(updatedListings);
+    saveState("gem-properties", updatedListings);
+  };
+
   const updateProperty = (updatedProp: Property) => {
     const updatedListings = properties.map((p) => (p.id === updatedProp.id ? updatedProp : p));
     setProperties(updatedListings);
@@ -1335,6 +1348,7 @@ export function AppStateProvider({ children }: { children: React.ReactNode }) {
         addProperty,
         approveProperty,
         rejectProperty,
+        suspendProperty,
         updateProperty,
         deleteProperty,
         addInquiry,

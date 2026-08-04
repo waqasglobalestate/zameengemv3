@@ -35,7 +35,9 @@ import {
   Crown,
   Zap,
   AlertTriangle,
-  UserCheck
+  UserCheck,
+  Ban,
+  ExternalLink
 } from "lucide-react";
 
 export default function DashboardPortal() {
@@ -49,6 +51,7 @@ export default function DashboardPortal() {
     userSession,
     approveProperty,
     rejectProperty,
+    suspendProperty,
     deleteProperty,
     removeSavedSearch,
     addBlog,
@@ -72,6 +75,11 @@ export default function DashboardPortal() {
   const [onboardingPassword, setOnboardingPassword] = useState("");
   const [onboardingLoading, setOnboardingLoading] = useState(false);
   const [onboardingError, setOnboardingError] = useState<string | null>(null);
+
+  // Super Admin Manage Properties filters
+  const [adminPropSearch, setAdminPropSearch] = useState("");
+  const [adminPropRoleFilter, setAdminPropRoleFilter] = useState("All");
+  const [adminPropStatusFilter, setAdminPropStatusFilter] = useState("All");
 
   useEffect(() => {
     if (typeof window !== "undefined") {
@@ -760,6 +768,7 @@ export default function DashboardPortal() {
             {[
               { id: "overview", name: "System Stats", icon: <Building className="w-4 h-4" /> },
               { id: "analytics", name: "System Analytics", icon: <BarChart3 className="w-4 h-4" /> },
+              { id: "properties", name: "Manage Properties", icon: <Building className="w-4 h-4" />, badge: properties.filter(p => p.isSuspended).length },
               { id: "users", name: "Manage Users", icon: <Users className="w-4 h-4" />, badge: users.filter(u => u.status === "Pending").length },
               { id: "agencies", name: "Manage Agencies", icon: <Building className="w-4 h-4" />, badge: agencies.filter(a => a.status === "Pending").length },
               { id: "ads", name: "Ads Manager", icon: <Megaphone className="w-4 h-4" /> },
@@ -829,6 +838,218 @@ export default function DashboardPortal() {
 
           {activeSubTab === "analytics" && (
             <AdminAnalytics />
+          )}
+
+          {activeSubTab === "properties" && (
+            <div className="space-y-6 animate-in fade-in duration-300">
+              <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+                <div>
+                  <h3 className="text-sm font-black text-foreground">Property Directory Audit & Control</h3>
+                  <p className="text-[10px] text-muted-text mt-0.5">Manage, suspend, or delete property listings uploaded across the network</p>
+                </div>
+              </div>
+
+              {/* Filter and Search Bar */}
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 border border-border-base p-4 rounded-xl bg-background/30 glass">
+                <div className="relative">
+                  <Search className="absolute left-3 top-2.5 w-4 h-4 text-muted-text pointer-events-none" />
+                  <input
+                    type="text"
+                    placeholder="Search title, location, owner name..."
+                    value={adminPropSearch}
+                    onChange={(e) => setAdminPropSearch(e.target.value)}
+                    className="w-full text-xs bg-muted-bg border border-border-base rounded-lg pl-9 pr-3 py-2.5 outline-none text-foreground placeholder:text-muted-text/70"
+                  />
+                </div>
+
+                <div>
+                  <select
+                    value={adminPropRoleFilter}
+                    onChange={(e) => setAdminPropRoleFilter(e.target.value)}
+                    className="w-full text-xs bg-muted-bg border border-border-base rounded-lg px-3 py-2.5 outline-none font-bold text-foreground"
+                  >
+                    <option value="All">All Submitter Roles</option>
+                    <option value="Agency">Agency</option>
+                    <option value="Agent">Agent</option>
+                    <option value="Seller">Common Seller</option>
+                    <option value="Admin">Admin</option>
+                  </select>
+                </div>
+
+                <div>
+                  <select
+                    value={adminPropStatusFilter}
+                    onChange={(e) => setAdminPropStatusFilter(e.target.value)}
+                    className="w-full text-xs bg-muted-bg border border-border-base rounded-lg px-3 py-2.5 outline-none font-bold text-foreground"
+                  >
+                    <option value="All">All Listing Statuses</option>
+                    <option value="Active">Active</option>
+                    <option value="Suspended">Suspended</option>
+                    <option value="Pending">Pending Approval</option>
+                  </select>
+                </div>
+              </div>
+
+              {/* Master Property Table */}
+              <div className="overflow-x-auto border border-border-base rounded-xl bg-background/50 glass">
+                <table className="w-full text-left text-xs border-collapse">
+                  <thead>
+                    <tr className="bg-muted-bg border-b border-border-base font-bold text-muted-text uppercase">
+                      <th className="p-3.5">Property</th>
+                      <th className="p-3.5">Submitter / Owner</th>
+                      <th className="p-3.5">Demand Price</th>
+                      <th className="p-3.5">Status</th>
+                      <th className="p-3.5 text-right">Actions</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {(() => {
+                      const filteredProps = properties.filter((p) => {
+                        // Search
+                        const q = adminPropSearch.toLowerCase();
+                        const matchesSearch =
+                          !q ||
+                          p.title.toLowerCase().includes(q) ||
+                          p.location.toLowerCase().includes(q) ||
+                          p.agent.name.toLowerCase().includes(q) ||
+                          (p.contactDetails?.name && p.contactDetails.name.toLowerCase().includes(q)) ||
+                          (p.contactDetails?.agencyName && p.contactDetails.agencyName.toLowerCase().includes(q));
+
+                        // Submitter Role Filter
+                        let submitterRole = "Seller";
+                        if (p.contactDetails?.type === "Agency" || p.contactDetails?.agencyName) submitterRole = "Agency";
+                        else if (p.contactDetails?.type === "Dealer" || p.agent.name.includes("Agent")) submitterRole = "Agent";
+                        // Find user match if present
+                        const matchedUser = users.find(u => u.email.toLowerCase() === p.createdByEmail?.toLowerCase() || u.name.toLowerCase() === p.agent.name.toLowerCase());
+                        if (matchedUser) submitterRole = matchedUser.role;
+
+                        const matchesRole = adminPropRoleFilter === "All" || submitterRole === adminPropRoleFilter;
+
+                        // Status Filter
+                        let currentStatus = "Active";
+                        if (p.isSuspended) currentStatus = "Suspended";
+                        else if (p.isApproved === false) currentStatus = "Pending";
+
+                        const matchesStatus = adminPropStatusFilter === "All" || currentStatus === adminPropStatusFilter;
+
+                        return matchesSearch && matchesRole && matchesStatus;
+                      });
+
+                      if (filteredProps.length === 0) {
+                        return (
+                          <tr>
+                            <td colSpan={5} className="p-10 text-center text-muted-text">
+                              <AlertTriangle className="w-8 h-8 mx-auto mb-2 text-slate-400" />
+                              <p className="text-xs">No properties matching filters were found.</p>
+                            </td>
+                          </tr>
+                        );
+                      }
+
+                      return filteredProps.map((p) => {
+                        const matchedUser = users.find(u => u.email.toLowerCase() === p.createdByEmail?.toLowerCase() || u.name.toLowerCase() === p.agent.name.toLowerCase());
+                        const roleLabel = matchedUser ? matchedUser.role : (p.contactDetails?.agencyName ? "Agency" : "Seller");
+
+                        return (
+                          <tr key={p.id} className="border-b border-border-base hover:bg-muted-bg/30 transition-all">
+                            {/* Property info */}
+                            <td className="p-3.5">
+                              <div className="flex items-center space-x-3">
+                                <div className="w-12 h-10 rounded-lg overflow-hidden border border-border-base bg-muted-bg shrink-0">
+                                  {/* eslint-disable-next-line @next/next/no-img-element */}
+                                  <img src={p.images?.[0] || "https://images.unsplash.com/photo-1500382017468-9049fed747ef?auto=format&fit=crop&w=600&q=80"} alt={p.title} className="w-full h-full object-cover" />
+                                </div>
+                                <div className="min-w-0">
+                                  <h4 className="font-extrabold text-foreground text-xs truncate max-w-[220px]" title={p.title}>{p.title}</h4>
+                                  <p className="text-[10px] text-muted-text truncate">{p.location} • {p.type}</p>
+                                </div>
+                              </div>
+                            </td>
+
+                            {/* Submitter Info */}
+                            <td className="p-3.5">
+                              <div>
+                                <p className="font-bold text-foreground text-xs">{p.agent.name || p.contactDetails?.name || "Independent Seller"}</p>
+                                <div className="flex items-center gap-1.5 mt-0.5">
+                                  <span className="px-1.5 py-0.2 text-[8px] font-black uppercase rounded bg-gold/20 text-gold border border-gold/30">
+                                    {roleLabel}
+                                  </span>
+                                  {p.contactDetails?.agencyName && (
+                                    <span className="text-[9px] text-muted-text truncate">{p.contactDetails.agencyName}</span>
+                                  )}
+                                </div>
+                              </div>
+                            </td>
+
+                            {/* Price */}
+                            <td className="p-3.5 font-bold text-gold">
+                              PKR {p.price >= 10000000 ? `${(p.price / 10000000).toFixed(2)} Crore` : `${(p.price / 100000).toFixed(1)} Lakh`}
+                            </td>
+
+                            {/* Status */}
+                            <td className="p-3.5">
+                              {p.isSuspended ? (
+                                <span className="px-2.5 py-0.5 rounded text-[10px] font-black tracking-wide border uppercase bg-red-500/10 text-red-500 border-red-500/25">
+                                  Suspended
+                                </span>
+                              ) : p.isApproved === false ? (
+                                <span className="px-2.5 py-0.5 rounded text-[10px] font-black tracking-wide border uppercase bg-amber-500/10 text-amber-500 border-amber-500/25">
+                                  Pending
+                                </span>
+                              ) : (
+                                <span className="px-2.5 py-0.5 rounded text-[10px] font-black tracking-wide border uppercase bg-emerald-500/10 text-emerald-500 border-emerald-500/25">
+                                  Active
+                                </span>
+                              )}
+                            </td>
+
+                            {/* Actions */}
+                            <td className="p-3.5 text-right whitespace-nowrap">
+                              <div className="flex justify-end items-center space-x-2">
+                                <button
+                                  onClick={() => suspendProperty(p.id)}
+                                  className={`py-1 px-2.5 font-bold text-[10px] rounded flex items-center space-x-1 cursor-pointer transition-colors border ${
+                                    p.isSuspended
+                                      ? "bg-emerald-500/10 text-emerald-500 border-emerald-500/25 hover:bg-emerald-500/20"
+                                      : "bg-red-500/10 text-red-500 border-red-500/25 hover:bg-red-500/20"
+                                  }`}
+                                  title={p.isSuspended ? "Activate Property" : "Suspend Property"}
+                                >
+                                  <Ban className="w-3 h-3" />
+                                  <span>{p.isSuspended ? "Activate" : "Suspend"}</span>
+                                </button>
+
+                                <button
+                                  onClick={() => {
+                                    if (confirm(`Are you sure you want to permanently delete property listing "${p.title}"?`)) {
+                                      deleteProperty(p.id);
+                                    }
+                                  }}
+                                  className="p-1.5 border border-border-base text-muted-text hover:text-red-600 hover:bg-red-600/10 rounded transition-colors"
+                                  title="Delete Property"
+                                >
+                                  <Trash2 className="w-3.5 h-3.5" />
+                                </button>
+
+                                <a
+                                  href={`/properties/${p.id}`}
+                                  target="_blank"
+                                  rel="noopener noreferrer"
+                                  className="p-1.5 border border-border-base text-royal dark:text-white hover:bg-royal/10 rounded transition-colors"
+                                  title="Inspect Property Page"
+                                >
+                                  <ExternalLink className="w-3.5 h-3.5" />
+                                </a>
+                              </div>
+                            </td>
+                          </tr>
+                        );
+                      });
+                    })()}
+                  </tbody>
+                </table>
+              </div>
+            </div>
           )}
 
           {activeSubTab === "users" && (

@@ -117,7 +117,7 @@ function SearchPropertiesContent() {
 
   // Filter listings
   const filteredProperties = properties.filter((p) => {
-    if (p.isApproved === false) return false;
+    if (p.isApproved === false || p.isSuspended === true) return false;
     
     // Global Query Search (Property ID, Title, Location, Sector, Description)
     if (globalQuery) {

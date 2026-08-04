@@ -212,7 +212,7 @@ function CompareContent() {
                             <div className="max-h-48 overflow-y-auto space-y-1.5 border border-border-base/50 rounded-lg p-1.5 bg-background shadow-inner">
                               {(() => {
                                 const matched = properties.filter((prop) => {
-                                  if (prop.isApproved === false) return false;
+                                  if (prop.isApproved === false || prop.isSuspended === true) return false;
                                   // Exclude already selected
                                   if (compareProps.some((cp) => cp.id === prop.id)) return false;
                                   if (!searchQuery) return true;

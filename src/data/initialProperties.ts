@@ -59,6 +59,7 @@ export interface Property {
     isVerified: boolean;
   };
   isApproved?: boolean; // admin approval state
+  isSuspended?: boolean; // admin suspension state
   roiPotential: string;
   nearby: {
     schools: string;

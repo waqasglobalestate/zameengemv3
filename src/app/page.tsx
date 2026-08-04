@@ -117,7 +117,7 @@ export default function HomePage() {
 
   // 0. Super Hot Listings: top priority spotlight for Pro/Premium members (max 1 per Premium account holder)
   const superHotListings = properties
-    .filter((p) => p.isSuperHot && p.isApproved !== false)
+    .filter((p) => p.isSuperHot && p.isApproved !== false && !p.isSuspended)
     .sort((a, b) => {
       const timeA = parseInt(a.id.replace(/\D/g, "")) || 0;
       const timeB = parseInt(b.id.replace(/\D/g, "")) || 0;
@@ -127,11 +127,11 @@ export default function HomePage() {
   // Showcase fallback: If no custom listing has isSuperHot set yet, display top featured/hot listings so section is always filled
   const displaySuperHotListings = superHotListings.length > 0 
     ? superHotListings 
-    : properties.filter((p) => (p.isHot || p.isPremium) && p.isApproved !== false).slice(0, 4);
+    : properties.filter((p) => (p.isHot || p.isPremium) && p.isApproved !== false && !p.isSuspended).slice(0, 4);
 
   // 1. Hot Listings: exclusive listings for Pro members marked as isHot
   const hotListings = properties
-    .filter((p) => p.isHot && p.isApproved !== false)
+    .filter((p) => p.isHot && p.isApproved !== false && !p.isSuspended)
     .sort((a, b) => {
       const timeA = parseInt(a.id.replace(/\D/g, "")) || 0;
       const timeB = parseInt(b.id.replace(/\D/g, "")) || 0;
@@ -141,7 +141,7 @@ export default function HomePage() {
 
   // 2. Featured Properties listing sorted by premium first, then latest
   const featuredProperties = properties
-    .filter((p) => p.purpose === purpose && p.isApproved !== false)
+    .filter((p) => p.purpose === purpose && p.isApproved !== false && !p.isSuspended)
     .sort((a, b) => {
       const premiumA = a.isPremium ? 1 : 0;
       const premiumB = b.isPremium ? 1 : 0;
@@ -154,7 +154,7 @@ export default function HomePage() {
 
   // 3. Fresh Listings (Latest Uploads): active properties sorted by ID timestamp (newest first)
   const latestUploads = [...properties]
-    .filter((p) => p.isApproved !== false)
+    .filter((p) => p.isApproved !== false && !p.isSuspended)
     .sort((a, b) => {
       const timeA = parseInt(a.id.replace(/\D/g, "")) || 0;
       const timeB = parseInt(b.id.replace(/\D/g, "")) || 0;
