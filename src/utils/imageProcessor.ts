@@ -11,6 +11,7 @@ export interface ProcessProgress {
 export interface ProcessedImage {
   previewUrl: string;
   blob: Blob;
+  dataUrl: string;
 }
 
 export function processImage(
@@ -102,17 +103,18 @@ export function processImage(
         // Small simulated delay for premium UX feedback
         setTimeout(() => {
           try {
+            const dataUrl = canvas.toDataURL("image/jpeg", 0.75);
             canvas.toBlob((blob) => {
               if (!blob) {
                 reject(new Error("Failed to compress image to Blob"));
                 return;
               }
-              const previewUrl = URL.createObjectURL(blob);
+              const previewUrl = dataUrl || URL.createObjectURL(blob);
               
               if (onProgress) {
                 onProgress({ status: "done", message: "Processing finished!" });
               }
-              resolve({ blob, previewUrl });
+              resolve({ blob, previewUrl, dataUrl: dataUrl || previewUrl });
             }, "image/jpeg", 0.75);
           } catch (err) {
             reject(err);

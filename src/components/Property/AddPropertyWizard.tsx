@@ -113,7 +113,7 @@ interface AddPropertyWizardProps {
 
 export default function AddPropertyWizard({ onSuccess }: AddPropertyWizardProps) {
   const { addProperty, userSession, properties } = useAppState();
-  const isPremiumUser = userSession.plan === "Pro" || userSession.role === "Admin" || userSession.role === "Agent" || userSession.role === "Agency";
+  const isProUser = userSession.plan === "Pro" || userSession.role === "Admin";
   const [step, setStep] = useState(1);
   const [validationError, setValidationError] = useState<string | null>(null);
 
@@ -160,8 +160,12 @@ export default function AddPropertyWizard({ onSuccess }: AddPropertyWizardProps)
 
   const handleToggleHot = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.checked) {
-      if (userHotCount >= 5) {
-        alert("Premium Listing Limit Reached:\n\nA Premium account allows a maximum of 5 Hot Listings out of your 100 listings limit. You currently have 5 active Hot listings.");
+      if (!isProUser) {
+        alert("Pro Feature Exclusive:\n\nHot Listing feature is available exclusively for Pro plan members. Please upgrade your account to Pro.");
+        return;
+      }
+      if (userHotCount >= 10 && userSession.role !== "Admin") {
+        alert(`Pro Plan Limit Reached:\n\nA Pro member account allows a maximum of 10 Hot Listings. You currently have ${userHotCount} active Hot listings.`);
         return;
       }
       setIsHot(true);
@@ -172,8 +176,12 @@ export default function AddPropertyWizard({ onSuccess }: AddPropertyWizardProps)
 
   const handleToggleSuperHot = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.checked) {
-      if (userSuperHotCount >= 1) {
-        alert("Premium Listing Limit Reached:\n\nA Premium account allows a maximum of 1 Super Hot Listing out of your 100 listings limit. You currently have 1 active Super Hot listing.");
+      if (!isProUser) {
+        alert("Pro Feature Exclusive:\n\nSuper Hot Listing feature is available exclusively for Pro plan members. Please upgrade your account to Pro.");
+        return;
+      }
+      if (userSuperHotCount >= 1 && userSession.role !== "Admin") {
+        alert(`Pro Plan Limit Reached:\n\nA Pro member account allows a maximum of 1 Super Hot Listing. You currently have ${userSuperHotCount} active Super Hot listing.`);
         return;
       }
       setIsSuperHot(true);
@@ -528,8 +536,8 @@ export default function AddPropertyWizard({ onSuccess }: AddPropertyWizardProps)
         }
         if (featUrl) {
           uploadedImageUrls.push(featUrl);
-        } else if (featuredImage.previewUrl) {
-          uploadedImageUrls.push(featuredImage.previewUrl);
+        } else if (featuredImage.dataUrl || featuredImage.previewUrl) {
+          uploadedImageUrls.push(featuredImage.dataUrl || featuredImage.previewUrl);
         }
         
         for (let i = 0; i < galleryImages.length; i++) {
@@ -541,8 +549,8 @@ export default function AddPropertyWizard({ onSuccess }: AddPropertyWizardProps)
           }
           if (gUrl) {
             uploadedImageUrls.push(gUrl);
-          } else if (galleryImages[i].previewUrl) {
-            uploadedImageUrls.push(galleryImages[i].previewUrl);
+          } else if (galleryImages[i].dataUrl || galleryImages[i].previewUrl) {
+            uploadedImageUrls.push(galleryImages[i].dataUrl || galleryImages[i].previewUrl);
           }
         }
       }
@@ -647,7 +655,7 @@ export default function AddPropertyWizard({ onSuccess }: AddPropertyWizardProps)
           type: (type as Property["type"]) || "House",
           size: `${area || 10} ${areaUnit || "Marla"}`,
           description: description || "Property details",
-          images: uploadedImageUrls.length > 0 ? uploadedImageUrls : (featuredImage?.previewUrl ? [featuredImage.previewUrl] : ["https://images.unsplash.com/photo-1500382017468-9049fed747ef?auto=format&fit=crop&w=600&q=80"]),
+          images: uploadedImageUrls.length > 0 ? uploadedImageUrls : (featuredImage?.dataUrl || featuredImage?.previewUrl ? [featuredImage.dataUrl || featuredImage.previewUrl] : ["https://images.unsplash.com/photo-1500382017468-9049fed747ef?auto=format&fit=crop&w=600&q=80"]),
           agent: {
             name: contactName || userSession?.name || "Representative",
             phone: contactPhone || "",
@@ -1162,15 +1170,15 @@ export default function AddPropertyWizard({ onSuccess }: AddPropertyWizardProps)
                             <div>
                               <h4 className="text-xs font-black text-foreground flex items-center gap-1.5">
                                 ⚡ Super Hot Listing Option
-                                <span className="text-[9px] font-extrabold uppercase bg-gradient-to-r from-amber-500 to-rose-600 text-white px-1.5 py-0.5 rounded tracking-wider shadow">Premium Exclusive</span>
+                                <span className="text-[9px] font-extrabold uppercase bg-gradient-to-r from-amber-500 to-rose-600 text-white px-1.5 py-0.5 rounded tracking-wider shadow">Pro Exclusive</span>
                               </h4>
                               <p className="text-[10px] text-muted-text mt-0.5">
-                                Pin this property to the <strong>Top Super Hot Spotlight</strong> banner on the homepage. Limited to <strong>1 Super Hot Listing</strong> per Premium account holder out of 100 listings. ({userSuperHotCount}/1 used)
+                                Pin this property to the <strong>Top Super Hot Spotlight</strong> banner on the homepage. Limited to <strong>1 Super Hot Listing</strong> per Pro member. ({userSuperHotCount}/1 used)
                               </p>
                             </div>
                           </div>
                           
-                          {isPremiumUser ? (
+                          {isProUser ? (
                             <label className="relative inline-flex items-center cursor-pointer select-none">
                               <input 
                                 type="checkbox" 
@@ -1182,7 +1190,7 @@ export default function AddPropertyWizard({ onSuccess }: AddPropertyWizardProps)
                             </label>
                           ) : (
                             <div className="flex items-center gap-1 text-[10px] font-bold text-amber-500 bg-amber-500/10 px-2.5 py-1 rounded-lg border border-amber-500/20 shrink-0 self-start sm:self-center">
-                              <Lock className="w-3 h-3" /> Premium Accounts Only
+                              <Lock className="w-3 h-3" /> Pro Members Only
                             </div>
                           )}
                         </div>
@@ -1198,15 +1206,15 @@ export default function AddPropertyWizard({ onSuccess }: AddPropertyWizardProps)
                             <div>
                               <h4 className="text-xs font-black text-foreground flex items-center gap-1.5">
                                 🔥 Hot Listing Option
-                                <span className="text-[9px] font-bold uppercase bg-rose-600 text-white px-1.5 py-0.5 rounded tracking-wider">Exclusive</span>
+                                <span className="text-[9px] font-bold uppercase bg-rose-600 text-white px-1.5 py-0.5 rounded tracking-wider">Pro Exclusive</span>
                               </h4>
                               <p className="text-[10px] text-muted-text mt-0.5">
-                                Mark as Hot Listing to rank in the Hot Deals directory section. Limited to <strong>5 Hot Listings</strong> per Premium account holder out of 100 listings. ({userHotCount}/5 used)
+                                Mark as Hot Listing to rank in the Hot Deals directory section. Limited to <strong>10 Hot Listings</strong> per Pro member. ({userHotCount}/10 used)
                               </p>
                             </div>
                           </div>
                           
-                          {isPremiumUser ? (
+                          {isProUser ? (
                             <label className="relative inline-flex items-center cursor-pointer select-none">
                               <input 
                                 type="checkbox" 
@@ -1218,7 +1226,7 @@ export default function AddPropertyWizard({ onSuccess }: AddPropertyWizardProps)
                             </label>
                           ) : (
                             <div className="flex items-center gap-1 text-[10px] font-bold text-rose-500 bg-rose-500/10 px-2.5 py-1 rounded-lg border border-rose-500/20 shrink-0 self-start sm:self-center">
-                              <Lock className="w-3 h-3" /> Premium Accounts Only
+                              <Lock className="w-3 h-3" /> Pro Members Only
                             </div>
                           )}
                         </div>
