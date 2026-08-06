@@ -3,7 +3,7 @@
 import React, { createContext, useContext, useState, useEffect } from "react";
 import { Property, initialProperties } from "@/data/initialProperties";
 import { BlogPost, initialBlogs } from "@/data/initialBlogs";
-import { getProperties, insertSupabaseProperty, insertUserRegistration, getUserRegistrations, updateUserRegistrationStatus, incrementPropertyViews } from "@/utils/supabaseService";
+import { getProperties, insertSupabaseProperty, insertUserRegistration, getUserRegistrations, updateUserRegistrationStatus, incrementPropertyViews, deleteSupabaseProperty, updateSupabasePropertySuspended } from "@/utils/supabaseService";
 import { supabase } from "@/utils/supabaseClient";
 
 export type UserRole = "Buyer" | "Seller" | "Agent" | "Agency" | "Admin";
@@ -252,17 +252,35 @@ export function AppStateProvider({ children }: { children: React.ReactNode }) {
           document.documentElement.classList.toggle("dark", false);
         }
 
-        const ensureMinViews = (list: Property[]) =>
-          list.map((p) => ({
-            ...p,
-            viewsCount: (p.viewsCount && p.viewsCount > 0) ? p.viewsCount : Math.floor(Math.random() * 45) + 25
-          }));
+        const getDeletedIds = (): string[] => {
+          try {
+            return JSON.parse(localStorage.getItem("gem-deleted-properties") || "[]");
+          } catch { return []; }
+        };
+
+        const getSuspendedIds = (): string[] => {
+          try {
+            return JSON.parse(localStorage.getItem("gem-suspended-properties") || "[]");
+          } catch { return []; }
+        };
+
+        const ensureCleanState = (list: Property[]) => {
+          const deletedIds = getDeletedIds();
+          const suspendedIds = getSuspendedIds();
+          return list
+            .filter((p) => !deletedIds.includes(String(p.id)))
+            .map((p) => ({
+              ...p,
+              isSuspended: suspendedIds.includes(String(p.id)) ? true : p.isSuspended,
+              viewsCount: (p.viewsCount && p.viewsCount > 0) ? p.viewsCount : Math.floor(Math.random() * 45) + 25
+            }));
+        };
 
         // Instant synchronous hydration for 0ms page render on slow connections
         const storedProperties = localStorage.getItem("gem-properties");
         if (storedProperties) {
           try {
-            const clean = ensureMinViews(JSON.parse(storedProperties));
+            const clean = ensureCleanState(JSON.parse(storedProperties));
             setProperties(clean);
           } catch (err) {
             console.warn("Failed to parse cached properties", err);
@@ -277,7 +295,7 @@ export function AppStateProvider({ children }: { children: React.ReactNode }) {
                 const dbMap = new Map(dbProps.map((p) => [String(p.id), p]));
                 // Keep local properties that haven't been assigned DB IDs yet
                 const pendingLocal = prevProps.filter((p) => !dbMap.has(String(p.id)));
-                const combined = ensureMinViews([...pendingLocal, ...dbProps]);
+                const combined = ensureCleanState([...pendingLocal, ...dbProps]);
                 localStorage.setItem("gem-properties", JSON.stringify(combined));
                 return combined;
               });
@@ -901,19 +919,45 @@ export function AppStateProvider({ children }: { children: React.ReactNode }) {
   };
 
   const suspendProperty = (id: string, isSuspended?: boolean) => {
+    let targetSuspendedState = true;
     const updatedListings = properties.map((p) => {
       if (p.id === id) {
-        const nextSuspended = isSuspended !== undefined ? isSuspended : !p.isSuspended;
-        return { ...p, isSuspended: nextSuspended };
+        targetSuspendedState = isSuspended !== undefined ? isSuspended : !p.isSuspended;
+        return { ...p, isSuspended: targetSuspendedState };
       }
       return p;
     });
     setProperties(updatedListings);
     saveState("gem-properties", updatedListings);
+
+    // Save to permanent suspended IDs registry
+    try {
+      const currentSuspended: string[] = JSON.parse(localStorage.getItem("gem-suspended-properties") || "[]");
+      let nextSuspended = [...currentSuspended];
+      if (targetSuspendedState) {
+        if (!nextSuspended.includes(id)) nextSuspended.push(id);
+      } else {
+        nextSuspended = nextSuspended.filter((item) => item !== id);
+      }
+      localStorage.setItem("gem-suspended-properties", JSON.stringify(nextSuspended));
+    } catch (err) {
+      console.warn("Error updating suspended properties cache:", err);
+    }
+
+    // Update in Supabase Cloud DB
+    updateSupabasePropertySuspended(id, targetSuspendedState).catch((err) =>
+      console.error("Failed to update property suspend state in Supabase:", err)
+    );
   };
 
   const updateProperty = (updatedProp: Property) => {
-    const updatedListings = properties.map((p) => (p.id === updatedProp.id ? updatedProp : p));
+    // If property was suspended by Super Admin, non-admin accounts cannot re-activate it
+    const existing = properties.find((p) => p.id === updatedProp.id);
+    let finalProp = updatedProp;
+    if (existing?.isSuspended && userSession?.role !== "Admin") {
+      finalProp = { ...updatedProp, isSuspended: true };
+    }
+    const updatedListings = properties.map((p) => (p.id === finalProp.id ? finalProp : p));
     setProperties(updatedListings);
     saveState("gem-properties", updatedListings);
   };
@@ -922,6 +966,22 @@ export function AppStateProvider({ children }: { children: React.ReactNode }) {
     const updatedListings = properties.filter((p) => p.id !== id);
     setProperties(updatedListings);
     saveState("gem-properties", updatedListings);
+
+    // Save to permanent deleted IDs list in localStorage
+    try {
+      const currentDeleted: string[] = JSON.parse(localStorage.getItem("gem-deleted-properties") || "[]");
+      if (!currentDeleted.includes(id)) {
+        const nextDeleted = [...currentDeleted, id];
+        localStorage.setItem("gem-deleted-properties", JSON.stringify(nextDeleted));
+      }
+    } catch (err) {
+      console.warn("Error updating deleted properties cache:", err);
+    }
+
+    // Permanently delete from Supabase Cloud DB
+    deleteSupabaseProperty(id).catch((err) =>
+      console.error("Failed to delete property from Supabase:", err)
+    );
   };
 
   const addInquiry = (inq: Omit<Inquiry, "id" | "status" | "createdAt">) => {

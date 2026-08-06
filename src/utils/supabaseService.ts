@@ -72,6 +72,7 @@ function mapDbRowToProperty(row: DbRecord, mediaRows: DbRecord[]): Property {
     isFeatured: viewsCount > 400 || isPremium,
     isPremium: isPremium,
     isHot: isHot,
+    isSuspended: asBoolean(row.is_suspended),
     isCorner: asBoolean(row.is_corner),
     isParkFacing: asBoolean(row.is_park_facing),
     isMainBoulevard: asBoolean(row.is_main_boulevard),
@@ -264,6 +265,46 @@ export async function uploadPropertyMedia(file: Blob, path: string): Promise<str
   } catch (err) {
     console.warn("Storage upload exception handled:", err);
     return "";
+  }
+}
+
+/**
+ * Permanently deletes a property and its media from Supabase Cloud DB.
+ */
+export async function deleteSupabaseProperty(propertyId: string): Promise<void> {
+  try {
+    if (!propertyId) return;
+
+    // Delete associated media records first
+    await supabase.from("property_media").delete().eq("property_id", propertyId);
+
+    // Delete property record
+    const { error } = await supabase.from("properties").delete().eq("id", propertyId);
+    if (error) {
+      console.warn("Supabase property delete notice:", error.message);
+    }
+  } catch (err) {
+    console.warn("Supabase property delete exception:", err);
+  }
+}
+
+/**
+ * Updates suspended status of a property in Supabase Cloud DB.
+ */
+export async function updateSupabasePropertySuspended(propertyId: string, isSuspended: boolean): Promise<void> {
+  try {
+    if (!propertyId) return;
+
+    const { error } = await supabase
+      .from("properties")
+      .update({ is_suspended: isSuspended })
+      .eq("id", propertyId);
+
+    if (error) {
+      console.warn("Supabase property suspend notice:", error.message);
+    }
+  } catch (err) {
+    console.warn("Supabase property suspend exception:", err);
   }
 }
 
