@@ -628,7 +628,7 @@ export default function AdminUsers() {
                             </button>
 
                             <a 
-                              href={`/properties/${prop.id}`} 
+                              href={`/properties?id=${prop.id}`} 
                               target="_blank" 
                               rel="noopener noreferrer"
                               className="py-0.5 px-2 bg-royal/10 text-royal dark:text-white font-extrabold text-[9px] rounded flex items-center space-x-0.5 hover:underline cursor-pointer border border-royal/20"

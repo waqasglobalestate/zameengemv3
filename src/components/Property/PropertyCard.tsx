@@ -147,7 +147,7 @@ export default function PropertyCard({ property, onCompareToggle, isComparing = 
         </div>
 
         <h3 className="text-base font-bold text-foreground line-clamp-1 group-hover:text-gold transition-colors mb-2">
-          <Link href={`/properties/${property.id}`}>
+          <Link href={`/properties?id=${property.id}`}>
             {property.title}
           </Link>
         </h3>
@@ -173,7 +173,7 @@ export default function PropertyCard({ property, onCompareToggle, isComparing = 
           {/* Action Row */}
           <div className="flex space-x-2">
             <Link 
-              href={`/properties/${property.id}`}
+              href={`/properties?id=${property.id}`}
               onClick={() => incrementViews(property.id)}
               className="flex-grow text-center text-xs font-bold py-2 bg-royal hover:bg-royal-hover dark:bg-white dark:hover:bg-slate-200 dark:text-royal text-white rounded-lg transition-colors flex items-center justify-center"
             >

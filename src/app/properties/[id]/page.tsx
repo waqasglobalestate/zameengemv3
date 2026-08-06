@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useState, useEffect } from "react";
-import { useParams, useRouter } from "next/navigation";
+import { useParams, useRouter, useSearchParams } from "next/navigation";
 import { useAppState } from "@/context/AppStateContext";
 import PropertyMap from "@/components/Property/PropertyMap";
 import { 
@@ -23,10 +23,11 @@ import {
 
 export default function PropertyDetailPage() {
   const params = useParams();
+  const searchParams = useSearchParams();
   const router = useRouter();
   const { properties, addInquiry, savedProperties, toggleSavedProperty, incrementViews, isLoaded, addLead } = useAppState();
 
-  const propertyId = params.id as string;
+  const propertyId = (params?.id as string) || searchParams?.get("id") || (typeof window !== "undefined" ? new URLSearchParams(window.location.search).get("id") || "" : "");
   const property = properties.find((p) => p.id === propertyId);
 
   // Extract contact numbers and uploader details dynamically

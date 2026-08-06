@@ -25,6 +25,10 @@ Options -Indexes +FollowSymLinks
   RewriteCond %{DOCUMENT_ROOT}/$1.html -f
   RewriteRule ^([^/]+)/?$ $1.html [L]
 
+  # Rewrite /properties/* sub-routes to properties.html so property details load instead of index.html fallback
+  RewriteCond %{REQUEST_URI} ^/properties/ [NC]
+  RewriteRule ^properties/.*$ properties.html [L]
+
   # Fallback to index.html ONLY for page navigation routes (exclude assets and files with extensions)
   RewriteCond %{REQUEST_URI} !\.(css|js|json|png|jpg|jpeg|gif|ico|svg|woff|woff2|ttf|eot)$ [NC]
   RewriteRule ^ index.html [L]

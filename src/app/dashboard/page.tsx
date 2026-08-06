@@ -1032,7 +1032,7 @@ export default function DashboardPortal() {
                                 </button>
 
                                 <a
-                                  href={`/properties/${p.id}`}
+                                  href={`/properties?id=${p.id}`}
                                   target="_blank"
                                   rel="noopener noreferrer"
                                   className="p-1.5 border border-border-base text-royal dark:text-white hover:bg-royal/10 rounded transition-colors"

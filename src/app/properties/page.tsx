@@ -6,6 +6,7 @@ import Link from "next/link";
 import { useAppState } from "@/context/AppStateContext";
 import PropertyCard from "@/components/Property/PropertyCard";
 import SectorMap from "@/components/Property/SectorMap";
+import PropertyDetailPage from "@/app/properties/[id]/page";
 import { 
   Grid, 
   List as ListIcon, 
@@ -25,6 +26,12 @@ function SearchPropertiesContent() {
   const { properties } = useAppState();
   const searchParams = useSearchParams();
   const router = useRouter();
+
+  // If URL has ?id=... then render the Property Detail page directly!
+  const detailId = searchParams.get("id");
+  if (detailId) {
+    return <PropertyDetailPage />;
+  }
 
   // Layout View Mode (Grid, List, Map)
   const [viewMode, setViewMode] = useState<"grid" | "list" | "map">("grid");
