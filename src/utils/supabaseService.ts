@@ -156,88 +156,112 @@ export async function getProperties(): Promise<Property[]> {
   }
 }
 
-export async function insertSupabaseProperty(p: Omit<Property, "id" | "viewsCount">): Promise<void> {
-  try {
-    // Parse size value and unit
-    const sizeParts = p.size.split(" ");
-    const areaValue = Number(sizeParts[0]) || 10;
-    const areaUnitValue = sizeParts[1]?.toLowerCase() === "kanal" ? "kanal" : "marla";
-
-    const contactType = p.contactDetails ? p.contactDetails.type.toLowerCase() : "dealer";
-    let contactName = p.contactDetails ? p.contactDetails.name : p.agent.name;
-    if (p.isPremium) {
-      contactName = contactName + " | PRO";
-    }
-    if (p.isHot) {
-      contactName = contactName + " | HOT";
-    }
-    const contactPhone = p.contactDetails ? p.contactDetails.phone : p.agent.phone;
-    const agencyName = p.contactDetails ? p.contactDetails.agencyName : undefined;
-
-    const { data: authData } = await supabase.auth.getUser();
-
-    const row: DbRecord = {
-      title: p.title,
-      description: p.description,
-      purpose: p.purpose === "Buy" ? "sell" : "rent",
-      type: p.type.includes("Plot") ? "plot" : p.type.includes("Villa") || p.type.includes("House") ? "house" : "plot",
-      city: p.location.includes("Multan") ? "Multan" : p.location.includes("Lahore") ? "Lahore" : "Bahawalpur",
-      society: p.location,
-      sector: p.sector || null,
-      area: areaValue,
-      area_unit: areaUnitValue,
-      bedrooms: p.bedrooms || null,
-      bathrooms: p.bathrooms || null,
-      floors: p.floors || null,
-      possession: p.possessionStatus.toLowerCase() === "possession" ? "possession" : "non-possession",
-      furnished: p.furnishedStatus?.toLowerCase() || "unfurnished",
-      is_corner: p.isCorner,
-      is_park_facing: p.isParkFacing,
-      is_main_boulevard: p.isMainBoulevard,
-      price: p.price,
-      installment_available: p.installmentAvailable,
-      down_payment: p.installmentDetails?.downPayment || null,
-      contact_type: contactType,
-      contact_name: contactName,
-      contact_phone: contactPhone,
-      agency_name: agencyName || null,
-      is_approved: true // Auto-approved on upload
-    };
-
-    if (authData?.user) {
-      row.created_by = authData.user.id;
-    }
-
-    const { data: newProp, error: insertErr } = await supabase
-      .from("properties")
-      .insert([row])
-      .select()
-      .single();
-
-    if (insertErr) {
-      console.error("Insert error details:", insertErr);
-      throw insertErr;
-    }
-
-    // Insert media links
-    if (newProp && p.images && p.images.length > 0) {
-      const mediaRows = p.images.map((url, idx) => ({
-        property_id: newProp.id,
-        url: url,
-        media_type: idx === 0 ? "featured" : "gallery",
-        sort_order: idx
-      }));
-
-      const { error: mediaErr } = await supabase
-        .from("property_media")
-        .insert(mediaRows);
-
-      if (mediaErr) throw mediaErr;
-    }
-  } catch (err) {
-    console.error("Error inserting property into Supabase:", err);
-    throw err;
+export async function insertSupabaseProperty(p: Omit<Property, "id" | "viewsCount">): Promise<Property> {
+  const { data: { user }, error: authError } = await supabase.auth.getUser();
+  if (authError) throw authError;
+  if (!user) {
+    throw new Error("Authentication required: You must be logged into Supabase Auth to upload a property listing.");
   }
+
+  console.log("Supabase Auth user:", user.id);
+  console.log("Supabase Auth email:", user.email);
+  console.log("Property created_by:", user.id);
+
+  // Parse size value and unit
+  const sizeParts = p.size.split(" ");
+  const areaValue = Number(sizeParts[0]) || 10;
+  const areaUnitValue = sizeParts[1]?.toLowerCase() === "kanal" ? "kanal" : "marla";
+
+  const contactType = p.contactDetails ? p.contactDetails.type.toLowerCase() : "dealer";
+  let contactName = p.contactDetails ? p.contactDetails.name : p.agent.name;
+  if (p.isPremium) {
+    contactName = contactName + " | PRO";
+  }
+  if (p.isHot) {
+    contactName = contactName + " | HOT";
+  }
+  const contactPhone = p.contactDetails ? p.contactDetails.phone : p.agent.phone;
+  const agencyName = p.contactDetails ? p.contactDetails.agencyName : undefined;
+
+  const row: DbRecord = {
+    title: p.title,
+    description: p.description,
+    purpose: p.purpose === "Buy" ? "sell" : "rent",
+    type: p.type.includes("Plot") ? "plot" : p.type.includes("Villa") || p.type.includes("House") ? "house" : "plot",
+    country: p.locationDetails?.country || "Pakistan",
+    city: p.locationDetails?.city || (p.location.includes("Multan") ? "Multan" : p.location.includes("Lahore") ? "Lahore" : "Bahawalpur"),
+    society: p.location,
+    sector: p.sector || null,
+    area: areaValue,
+    area_unit: areaUnitValue,
+    bedrooms: p.bedrooms || null,
+    bathrooms: p.bathrooms || null,
+    floors: p.floors || null,
+    possession: p.possessionStatus.toLowerCase() === "possession" ? "possession" : "non-possession",
+    furnished: p.furnishedStatus?.toLowerCase() || "unfurnished",
+    is_corner: p.isCorner,
+    is_park_facing: p.isParkFacing,
+    is_main_boulevard: p.isMainBoulevard,
+    price: p.price,
+    installment_available: p.installmentAvailable,
+    down_payment: p.installmentDetails?.downPayment || null,
+    monthly_installment: p.installmentDetails?.monthlyInstallment || null,
+    contact_type: contactType,
+    contact_name: contactName,
+    contact_phone: contactPhone,
+    agency_name: agencyName || null,
+    is_approved: true, // Auto-approved on upload
+    created_by: user.id,
+    views_count: 0
+  };
+
+  const { data: newProp, error: insertErr } = await supabase
+    .from("properties")
+    .insert([row])
+    .select()
+    .single();
+
+  if (insertErr) {
+    console.error("=== SUPABASE PROPERTY INSERT FAILED ===", {
+      message: insertErr.message,
+      details: insertErr.details,
+      hint: insertErr.hint,
+      code: insertErr.code,
+      rowPayload: row
+    });
+    throw insertErr;
+  }
+
+  console.log("Property successfully inserted:", newProp.id);
+
+  // Insert media links
+  let mediaRows: DbRecord[] = [];
+  if (newProp && p.images && p.images.length > 0) {
+    mediaRows = p.images.map((url, idx) => ({
+      property_id: newProp.id,
+      url: url,
+      media_type: idx === 0 ? "featured" : "gallery",
+      sort_order: idx
+    }));
+
+    const { error: mediaErr } = await supabase
+      .from("property_media")
+      .insert(mediaRows);
+
+    if (mediaErr) {
+      console.error("=== SUPABASE PROPERTY MEDIA INSERT FAILED ===", {
+        message: mediaErr.message,
+        details: mediaErr.details,
+        hint: mediaErr.hint,
+        code: mediaErr.code
+      });
+      throw mediaErr;
+    } else {
+      console.log("=== SUPABASE PROPERTY MEDIA INSERT SUCCESS ===");
+    }
+  }
+
+  return mapDbRowToProperty(newProp, mediaRows);
 }
 
 /**

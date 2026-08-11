@@ -312,27 +312,22 @@ export default function AddPropertyAuthModal({ isOpen, onClose }: AddPropertyAut
 
     // Call Supabase Auth to register user
     try {
-      try {
-        const { error: signUpErr } = await supabase.auth.signUp({
-          email: email,
-          password: password,
-          options: {
-            data: {
-              full_name: name,
-              phone: phone,
-              role: selectedType === "seller" ? "Seller" : selectedType === "agent" ? "Agent" : "Agency",
-              companyName: selectedType === "agency" ? agencyNameInput : selectedType === "agent" ? "Independent Agent" : "Individual Seller",
-              plan: "Free"
-            },
-            emailRedirectTo: `${window.location.origin}/dashboard`
-          }
-        });
-        if (signUpErr) {
-          console.warn("Supabase signup error (falling back to local simulation):", signUpErr);
+      const { data: signUpData, error: signUpErr } = await supabase.auth.signUp({
+        email: email.trim(),
+        password: password,
+        options: {
+          data: {
+            full_name: name.trim(),
+            phone: phone.trim(),
+            role: selectedType === "seller" ? "Seller" : selectedType === "agent" ? "Agent" : "Agency",
+            companyName: selectedType === "agency" ? agencyNameInput.trim() : selectedType === "agent" ? "Independent Agent" : "Individual Seller",
+            plan: "Free"
+          },
+          emailRedirectTo: `${window.location.origin}/dashboard`
         }
-      } catch (authErr) {
-        console.warn("Supabase signup exception (falling back to local simulation):", authErr);
-      }
+      });
+
+      if (signUpErr) throw signUpErr;
 
       // Sync manual registration to local DB lists so they display in the admin panel!
       const userRole = selectedType === "seller" ? "Seller" : selectedType === "agent" ? "Agent" : "Agency";
@@ -429,71 +424,7 @@ export default function AddPropertyAuthModal({ isOpen, onClose }: AddPropertyAut
       }
     }
 
-    // 2. Local database & simulation login check
-    try {
-      const storedUsersRaw = typeof window !== "undefined" ? localStorage.getItem("gem-users") : null;
-      const currentUsers: UserRecord[] = storedUsersRaw ? JSON.parse(storedUsersRaw) : users;
-      const matchedUser = currentUsers.find(u => u.email.toLowerCase() === loginEmail.trim().toLowerCase()) ||
-                          users.find(u => u.email.toLowerCase() === loginEmail.trim().toLowerCase());
-
-      if (matchedUser) {
-        // Enforce Admin Approval Check!
-        if (matchedUser.status === "Pending") {
-          setError("⚠️ Account Approval Pending: Your account has not been approved by an administrator yet. Please wait for admin approval before logging in.");
-          setIsSubmitting(false);
-          return;
-        }
-
-        if (matchedUser.status === "Suspended") {
-          setError("Your account has been suspended by administration. Please contact support.");
-          setIsSubmitting(false);
-          return;
-        }
-
-        const passwordMatches = !matchedUser.password || 
-                                matchedUser.password === loginPassword || 
-                                loginPassword === "agent123" || 
-                                loginPassword === "pass123";
-        
-        if (passwordMatches) {
-          // If password was missing or newly provided, sync back to local storage
-          if (!matchedUser.password && loginPassword) {
-            matchedUser.password = loginPassword;
-            const updatedUsersList = currentUsers.map(u => u.email.toLowerCase() === matchedUser.email.toLowerCase() ? { ...u, password: loginPassword } : u);
-            if (typeof window !== "undefined") {
-              localStorage.setItem("gem-users", JSON.stringify(updatedUsersList));
-            }
-          }
-
-          loginUser({
-            name: matchedUser.name,
-            email: matchedUser.email,
-            phone: matchedUser.phone || "",
-            role: matchedUser.role,
-            companyName: matchedUser.companyName || (matchedUser.role === "Agency" ? "Apex Properties" : matchedUser.role === "Agent" ? "Independent Agent" : "Individual Seller"),
-            image: matchedUser.image || (matchedUser.role === "Admin" ? "/images/waqas_ceo.png" : `https://ui-avatars.com/api/?name=${encodeURIComponent(matchedUser.name)}&background=c5a85c&color=fff`),
-            plan: "Free",
-            status: matchedUser.status || "Active"
-          });
-          
-          setIsSubmitting(false);
-          setStep("success");
-          setTimeout(() => {
-            onClose();
-            window.location.href = "/dashboard";
-          }, 1500);
-          return;
-        } else {
-          setError("Invalid password. Please verify your password and try again.");
-          setIsSubmitting(false);
-          return;
-        }
-      }
-    } catch (localErr) {
-      console.warn("Local login check error:", localErr);
-    }
-
-    // 3. Live Supabase Auth login
+    // Live Supabase Auth login
     try {
       const { error: signInErr } = await supabase.auth.signInWithPassword({
         email: loginEmail.trim(),
@@ -503,9 +434,10 @@ export default function AddPropertyAuthModal({ isOpen, onClose }: AddPropertyAut
       if (signInErr) throw signInErr;
 
       // Check status from local users list after Supabase validates credentials
-      const storedUsersRaw = localStorage.getItem("gem-users");
+      const storedUsersRaw = typeof window !== "undefined" ? localStorage.getItem("gem-users") : null;
       const currentUsers: UserRecord[] = storedUsersRaw ? JSON.parse(storedUsersRaw) : users;
-      const matched = currentUsers.find(u => u.email.toLowerCase() === loginEmail.trim().toLowerCase());
+      const matched = currentUsers.find(u => u.email.toLowerCase() === loginEmail.trim().toLowerCase()) ||
+                      users.find(u => u.email.toLowerCase() === loginEmail.trim().toLowerCase());
       
       if (matched) {
         if (matched.status === "Pending") {

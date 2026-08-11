@@ -156,7 +156,7 @@ interface AppStateContextProps {
   updateAgent: (agent: Agent) => void;
   deleteAgent: (id: string) => void;
 
-  addProperty: (property: Omit<Property, "id" | "viewsCount">) => void;
+  addProperty: (property: Omit<Property, "id" | "viewsCount">) => Promise<Property>;
   approveProperty: (id: string) => void;
   rejectProperty: (id: string) => void;
   suspendProperty: (id: string, isSuspended?: boolean) => void;
@@ -869,41 +869,31 @@ export function AppStateProvider({ children }: { children: React.ReactNode }) {
     });
   };
 
-  const addProperty = (newProp: Omit<Property, "id" | "viewsCount">) => {
-    try {
-      // Enforce plan limits for Agent/Agency roles
-      const role = userSession?.role;
-      if (role === "Agent" || role === "Agency") {
-        const check = canAddProperty();
-        if (!check.allowed) {
-          console.warn("Property upload blocked — plan limit reached.", check.reason);
-          return;
-        }
+  const addProperty = async (newProp: Omit<Property, "id" | "viewsCount">): Promise<Property> => {
+    // Enforce plan limits for Agent/Agency roles
+    const role = userSession?.role;
+    if (role === "Agent" || role === "Agency") {
+      const check = canAddProperty();
+      if (!check.allowed) {
+        throw new Error(`Property upload blocked — plan limit reached. ${check.reason}`);
       }
+    }
 
-      // Insert to Supabase asynchronously without blocking local creation
-      try {
-        insertSupabaseProperty(newProp)
-          .then(() => console.log("Property successfully uploaded to Supabase!"))
-          .catch((err) => console.error("Failed to upload to Supabase:", err));
-      } catch (dbErr) {
-        console.warn("Supabase insertion exception caught:", dbErr);
-      }
+    // 1. Attempt Supabase INSERT FIRST
+    const insertedProp = await insertSupabaseProperty(newProp);
 
-      const propertyWithId: Property = {
-        ...newProp,
-        id: `prop-${Date.now()}`,
-        viewsCount: Math.floor(Math.random() * 30) + 18,
-        createdAt: new Date().toISOString().split("T")[0]
-      };
-      setProperties((prev) => {
-        const updatedListings = [propertyWithId, ...prev];
+    // 2. Only after successful Supabase INSERT: update local React state & localStorage
+    setProperties((prev) => {
+      const dbMap = new Map(prev.map((p) => [String(p.id), p]));
+      if (!dbMap.has(String(insertedProp.id))) {
+        const updatedListings = [insertedProp, ...prev];
         saveState("gem-properties", updatedListings);
         return updatedListings;
-      });
-    } catch (e) {
-      console.error("addProperty exception handled:", e);
-    }
+      }
+      return prev;
+    });
+
+    return insertedProp;
   };
 
   const approveProperty = (id: string) => {

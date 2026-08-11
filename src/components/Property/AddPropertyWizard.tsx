@@ -634,7 +634,7 @@ export default function AddPropertyWizard({ onSuccess }: AddPropertyWizardProps)
         }
       };
 
-      addProperty(newProp);
+      await addProperty(newProp);
       setIsSubmitting(false);
       setIsSubmitted(true);
       
@@ -644,53 +644,9 @@ export default function AddPropertyWizard({ onSuccess }: AddPropertyWizardProps)
       }, 2000);
     } catch (err) {
       console.error("Error publishing property:", err);
-      // Fail-safe execution: create property listing even if any calculation errored
-      try {
-        addProperty({
-          title: title || "Property Allotment",
-          price: Number(price) || 100000,
-          location: society || "DHA Bahawalpur",
-          sector: sector || "",
-          createdByEmail: userSession?.email,
-          type: (type as Property["type"]) || "House",
-          size: `${area || 10} ${areaUnit || "Marla"}`,
-          description: description || "Property details",
-          images: uploadedImageUrls.length > 0 ? uploadedImageUrls : (featuredImage?.dataUrl || featuredImage?.previewUrl ? [featuredImage.dataUrl || featuredImage.previewUrl] : ["https://images.unsplash.com/photo-1500382017468-9049fed747ef?auto=format&fit=crop&w=600&q=80"]),
-          agent: {
-            name: contactName || userSession?.name || "Representative",
-            phone: contactPhone || "",
-            whatsapp: (contactPhone || "").replace(/[^0-9]/g, ""),
-            image: userSession?.image || "",
-            experience: "Private Submitter"
-          },
-          amenities: selectedAmenities || [],
-          purpose: purpose === "Buy" ? "Buy" : "Rent",
-          isFeatured: false,
-          isCorner: !!isCorner,
-          isParkFacing: !!isParkFacing,
-          isMainBoulevard: !!isMainBoulevard,
-          isHot: !!isHot,
-          isSuperHot: !!isSuperHot,
-          isApproved: true,
-          possessionStatus: possessionStatus || "Possession",
-          installmentAvailable: !!installmentAvailable,
-          roiPotential: purpose === "Buy" ? "9.8%" : "6.2%",
-          nearby: {
-            schools: "International School Sector (4 mins)",
-            hospitals: "Gis Medical Complex (7 mins)",
-            mosques: "Sector Grand Masjid (3 mins)",
-            markets: "Civic Commercial Plaza (2 mins)"
-          },
-          contactDetails: { type: contactType || "Owner", name: contactName || "Owner", phone: contactPhone || "" }
-        });
-        setIsSubmitting(false);
-        setIsSubmitted(true);
-        setTimeout(() => onSuccess(), 1500);
-      } catch (fallbackErr) {
-        console.error("Fallback publishing error:", fallbackErr);
-        setValidationError("An error occurred while publishing the property. Please check that all required fields are filled.");
-        setIsSubmitting(false);
-      }
+      const errMsg = err instanceof Error ? err.message : "Failed to upload property listing.";
+      setValidationError(errMsg);
+      setIsSubmitting(false);
     }
   };
 
