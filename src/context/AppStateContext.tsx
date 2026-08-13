@@ -34,6 +34,7 @@ export interface SavedSearch {
 export type AccountPlan = "Free" | "Pro";
 
 export interface UserSession {
+  id?: string;
   name: string;
   email: string;
   phone: string;
@@ -406,6 +407,7 @@ export function AppStateProvider({ children }: { children: React.ReactNode }) {
           }
 
           const mappedSession: UserSession = {
+            id: session.user.id,
             name: meta.full_name || session.user.email?.split("@")[0] || "User",
             email: session.user.email || "",
             phone: session.user.phone || meta.phone || "",
@@ -681,6 +683,7 @@ export function AppStateProvider({ children }: { children: React.ReactNode }) {
         }
 
         const mappedSession: UserSession = {
+          id: session.user.id,
           name: meta.full_name || session.user.email?.split("@")[0] || "User",
           email: session.user.email || "",
           phone: session.user.phone || meta.phone || "",

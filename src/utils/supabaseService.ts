@@ -42,6 +42,7 @@ function mapDbRowToProperty(row: DbRecord, mediaRows: DbRecord[]): Property {
 
   return {
     id: rowId,
+    createdBy: row.created_by ? asString(row.created_by) : undefined,
     title: asString(row.title),
     price: asNumber(row.price),
     location: asString(row.society),
@@ -158,14 +159,19 @@ export async function getProperties(): Promise<Property[]> {
 
 export async function insertSupabaseProperty(p: Omit<Property, "id" | "viewsCount">): Promise<Property> {
   const { data: { user }, error: authError } = await supabase.auth.getUser();
+
+  console.log("=== PROPERTY UPLOAD AUTH DEBUG ===");
+  console.log("Auth error:", authError);
+  console.log("Authenticated user:", {
+    id: user?.id,
+    email: user?.email
+  });
+
   if (authError) throw authError;
   if (!user) {
+    console.error("Supabase Auth session is missing before property INSERT.");
     throw new Error("Authentication required: You must be logged into Supabase Auth to upload a property listing.");
   }
-
-  console.log("Supabase Auth user:", user.id);
-  console.log("Supabase Auth email:", user.email);
-  console.log("Property created_by:", user.id);
 
   // Parse size value and unit
   const sizeParts = p.size.split(" ");
@@ -215,11 +221,35 @@ export async function insertSupabaseProperty(p: Omit<Property, "id" | "viewsCoun
     views_count: 0
   };
 
+  console.log("Property created_by:", user.id);
+  console.log("=== PROPERTY INSERT PAYLOAD DEBUG ===", {
+    created_by: row.created_by,
+    title: row.title,
+    city: row.city,
+    society: row.society,
+    area: row.area,
+    area_unit: row.area_unit,
+    purpose: row.purpose,
+    type: row.type,
+    possession: row.possession,
+    price: row.price,
+    contact_type: row.contact_type,
+    contact_name: row.contact_name,
+    contact_phone: row.contact_phone,
+    is_approved: row.is_approved,
+    monthly_installment: row.monthly_installment,
+    views_count: row.views_count
+  });
+
   const { data: newProp, error: insertErr } = await supabase
     .from("properties")
     .insert([row])
     .select()
     .single();
+
+  console.log("=== PROPERTY INSERT RESULT ===");
+  console.log("Inserted property:", newProp);
+  console.log("Insert error:", insertErr);
 
   if (insertErr) {
     console.error("=== SUPABASE PROPERTY INSERT FAILED ===", {

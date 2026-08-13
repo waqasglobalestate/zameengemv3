@@ -25,6 +25,7 @@ export interface Property {
   isPremium?: boolean;
   isHot?: boolean;
   isSuperHot?: boolean;
+  createdBy?: string;
   createdByEmail?: string;
   createdAt?: string;
   isCorner: boolean;

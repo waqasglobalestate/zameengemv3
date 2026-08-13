@@ -207,6 +207,9 @@ export default function DashboardPortal() {
   // Filter listings added by current user context
   const myListings = properties.filter((p) => {
     if (userSession.role === "Admin") return true;
+    if (p.createdBy && userSession.id && String(p.createdBy) === String(userSession.id)) {
+      return true;
+    }
     if (p.createdByEmail && userSession.email && p.createdByEmail.toLowerCase() === userSession.email.toLowerCase()) {
       return true;
     }
