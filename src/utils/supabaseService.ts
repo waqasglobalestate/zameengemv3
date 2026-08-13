@@ -194,7 +194,6 @@ export async function insertSupabaseProperty(p: Omit<Property, "id" | "viewsCoun
     description: p.description,
     purpose: p.purpose === "Buy" ? "sell" : "rent",
     type: p.type.includes("Plot") ? "plot" : p.type.includes("Villa") || p.type.includes("House") ? "house" : "plot",
-    country: p.locationDetails?.country || "Pakistan",
     city: p.locationDetails?.city || (p.location.includes("Multan") ? "Multan" : p.location.includes("Lahore") ? "Lahore" : "Bahawalpur"),
     society: p.location,
     sector: p.sector || null,
@@ -211,55 +210,43 @@ export async function insertSupabaseProperty(p: Omit<Property, "id" | "viewsCoun
     price: p.price,
     installment_available: p.installmentAvailable,
     down_payment: p.installmentDetails?.downPayment || null,
-    monthly_installment: p.installmentDetails?.monthlyInstallment || null,
+    monthly_installment_amount: p.installmentDetails?.monthlyInstallment || null,
     contact_type: contactType,
     contact_name: contactName,
     contact_phone: contactPhone,
     agency_name: agencyName || null,
     is_approved: true, // Auto-approved on upload
-    created_by: user.id,
-    views_count: 0
+    created_by: user.id
   };
 
   console.log("Property created_by:", user.id);
-  console.log("=== PROPERTY INSERT PAYLOAD DEBUG ===", {
-    created_by: row.created_by,
-    title: row.title,
-    city: row.city,
-    society: row.society,
-    area: row.area,
-    area_unit: row.area_unit,
-    purpose: row.purpose,
-    type: row.type,
-    possession: row.possession,
-    price: row.price,
-    contact_type: row.contact_type,
-    contact_name: row.contact_name,
-    contact_phone: row.contact_phone,
-    is_approved: row.is_approved,
-    monthly_installment: row.monthly_installment,
-    views_count: row.views_count
-  });
+  console.log("=== PROPERTY INSERT PAYLOAD DEBUG ===", row);
 
-  const { data: newProp, error: insertErr } = await supabase
+  console.log("=== EXECUTING SUPABASE PROPERTIES INSERT ===");
+  const { data: insertedRows, error: insertErr } = await supabase
     .from("properties")
     .insert([row])
-    .select()
-    .single();
+    .select();
 
   console.log("=== PROPERTY INSERT RESULT ===");
-  console.log("Inserted property:", newProp);
+  console.log("Inserted property rows:", insertedRows);
   console.log("Insert error:", insertErr);
 
   if (insertErr) {
-    console.error("=== SUPABASE PROPERTY INSERT FAILED ===", {
-      message: insertErr.message,
-      details: insertErr.details,
-      hint: insertErr.hint,
-      code: insertErr.code,
-      rowPayload: row
+    console.error("PROPERTY INSERT ERROR DETAILS", {
+      message: insertErr?.message,
+      details: insertErr?.details,
+      hint: insertErr?.hint,
+      code: insertErr?.code,
+      status: (insertErr as any)?.status,
     });
+    console.dir(insertErr, { depth: null });
     throw insertErr;
+  }
+
+  const newProp = (insertedRows && insertedRows.length > 0) ? insertedRows[0] : null;
+  if (!newProp) {
+    throw new Error("Property insert succeeded but no inserted row was returned.");
   }
 
   console.log("Property successfully inserted:", newProp.id);
