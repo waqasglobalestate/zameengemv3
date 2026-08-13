@@ -3,7 +3,7 @@
 import React, { createContext, useContext, useState, useEffect } from "react";
 import { Property, initialProperties } from "@/data/initialProperties";
 import { BlogPost, initialBlogs } from "@/data/initialBlogs";
-import { getProperties, insertSupabaseProperty, insertUserRegistration, getUserRegistrations, updateUserRegistrationStatus, incrementPropertyViews, deleteSupabaseProperty, updateSupabasePropertySuspended } from "@/utils/supabaseService";
+import { getProperties, insertSupabaseProperty, insertUserRegistration, getUserRegistrations, updateUserRegistrationStatus, incrementPropertyViews, deleteSupabaseProperty, updateSupabasePropertySuspended, deleteSupabaseUserRegistration } from "@/utils/supabaseService";
 import { supabase } from "@/utils/supabaseClient";
 
 export type UserRole = "Buyer" | "Seller" | "Agent" | "Agency" | "Admin";
@@ -185,7 +185,7 @@ interface AppStateContextProps {
   addUser: (user: Omit<UserRecord, "id" | "dateJoined" | "status">) => void;
   updateUserRole: (id: string, role: UserRole) => void;
   updateUserStatus: (id: string, status: "Active" | "Suspended" | "Pending") => void;
-  deleteUser: (id: string) => void;
+  deleteUser: (id: string) => Promise<void>;
   addAgency: (agency: Omit<AgencyRecord, "id" | "agentsCount" | "listingsCount">) => void;
   updateAgencyStatus: (id: string, status: "Active" | "Pending" | "Suspended") => void;
   deleteAgency: (id: string) => void;
@@ -1222,33 +1222,41 @@ export function AppStateProvider({ children }: { children: React.ReactNode }) {
     });
   };
 
-  const deleteUser = (id: string) => {
-    setUsers((prev) => {
-      const targetUser = prev.find((u) => u.id === id);
-      if (targetUser) {
-        updateUserRegistrationStatus(targetUser.email, "Rejected");
-      }
-      const updated = prev.filter((u) => u.id !== id);
-      saveState("gem-users", updated);
+  const deleteUser = async (id: string): Promise<void> => {
+    const targetUser = users.find((u) => u.id === id);
+    if (!targetUser) return;
 
-      if (targetUser) {
-        setAgents((prevAgents) => {
-          const updatedAgents = prevAgents.filter((a) => a.email.toLowerCase() !== targetUser.email.toLowerCase() && a.id !== id);
-          saveState("gem-agents", updatedAgents);
-          return updatedAgents;
-        });
-        setAgencies((prevAgencies) => {
-          const updatedAgencies = prevAgencies.filter((ag) => ag.email.toLowerCase() !== targetUser.email.toLowerCase() && ag.id !== id);
-          saveState("gem-agencies", updatedAgencies);
-          return updatedAgencies;
-        });
-        if (userSession && userSession.email.toLowerCase() === targetUser.email.toLowerCase()) {
-          setUserSession(defaultSession);
-          saveState("gem-user-session", defaultSession);
-        }
-      }
+    // 1. Attempt Supabase permanent database deletion FIRST
+    try {
+      await deleteSupabaseUserRegistration(targetUser.email);
+    } catch (err) {
+      console.error("Failed to delete user from Supabase user_registrations:", err);
+      throw err;
+    }
+
+    // 2. Only after successful database deletion, update local React state & localStorage
+    setUsers((prev) => {
+      const updated = prev.filter((u) => u.id !== id && u.email.toLowerCase() !== targetUser.email.toLowerCase());
+      saveState("gem-users", updated);
       return updated;
     });
+
+    setAgents((prevAgents) => {
+      const updatedAgents = prevAgents.filter((a) => a.email.toLowerCase() !== targetUser.email.toLowerCase() && a.id !== id);
+      saveState("gem-agents", updatedAgents);
+      return updatedAgents;
+    });
+
+    setAgencies((prevAgencies) => {
+      const updatedAgencies = prevAgencies.filter((ag) => ag.email.toLowerCase() !== targetUser.email.toLowerCase() && ag.id !== id);
+      saveState("gem-agencies", updatedAgencies);
+      return updatedAgencies;
+    });
+
+    if (userSession && userSession.email.toLowerCase() === targetUser.email.toLowerCase()) {
+      setUserSession(defaultSession);
+      saveState("gem-user-session", defaultSession);
+    }
   };
 
   // Agency CRUD

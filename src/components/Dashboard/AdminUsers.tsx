@@ -264,9 +264,14 @@ export default function AdminUsers() {
                       {/* Delete account */}
                       {!isSelf && (
                         <button
-                          onClick={() => {
+                          onClick={async () => {
                             if (confirm(`Are you sure you want to permanently delete user "${u.name}"? This action cannot be undone.`)) {
-                              deleteUser(u.id);
+                              try {
+                                await deleteUser(u.id);
+                              } catch (err) {
+                                const msg = err instanceof Error ? err.message : "Failed to delete user from database.";
+                                alert(`Error deleting user: ${msg}`);
+                              }
                             }
                           }}
                           className="p-1.5 border border-border-base text-muted-text hover:text-red-600 hover:bg-red-600/10 rounded hover:scale-105 transition-transform"
@@ -672,10 +677,15 @@ export default function AdminUsers() {
 
                     <button
                       type="button"
-                      onClick={() => {
+                      onClick={async () => {
                         if (confirm(`Are you sure you want to permanently delete account "${selectedUser.name}"?`)) {
-                          deleteUser(selectedUser.id);
-                          setSelectedUser(null);
+                          try {
+                            await deleteUser(selectedUser.id);
+                            setSelectedUser(null);
+                          } catch (err) {
+                            const msg = err instanceof Error ? err.message : "Failed to delete user from database.";
+                            alert(`Error deleting user: ${msg}`);
+                          }
                         }
                       }}
                       className="px-3 py-1.5 text-xs font-bold rounded-lg text-red-600 bg-red-600/10 hover:bg-red-600 hover:text-white transition-colors flex items-center space-x-1.5 border border-red-600/20"

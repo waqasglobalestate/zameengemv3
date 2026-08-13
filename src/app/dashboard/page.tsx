@@ -1108,9 +1108,13 @@ export default function DashboardPortal() {
                             <span>Approve Agent</span>
                           </button>
                           <button
-                            onClick={() => {
+                            onClick={async () => {
                               if (confirm(`Are you sure you want to reject and delete agent "${u.name}"?`)) {
-                                deleteUser(u.id);
+                                try {
+                                  await deleteUser(u.id);
+                                } catch (err) {
+                                  alert(`Error rejecting agent: ${err instanceof Error ? err.message : "Failed to delete database record."}`);
+                                }
                               }
                             }}
                             className="py-1.5 px-3 border border-border-base hover:bg-red-600/10 text-muted-text hover:text-red-500 font-bold text-[10px] rounded-lg transition-colors flex items-center justify-center space-x-1 cursor-pointer"
@@ -1180,11 +1184,15 @@ export default function DashboardPortal() {
                               <span>Approve Firm</span>
                             </button>
                             <button
-                              onClick={() => {
+                              onClick={async () => {
                                 if (confirm(`Are you sure you want to reject and delete agency "${a.name}"?`)) {
-                                  deleteAgency(a.id);
-                                  // Also delete corresponding user if exists
-                                  if (userRec) deleteUser(userRec.id);
+                                  try {
+                                    deleteAgency(a.id);
+                                    // Also delete corresponding user if exists
+                                    if (userRec) await deleteUser(userRec.id);
+                                  } catch (err) {
+                                    alert(`Error deleting agency user: ${err instanceof Error ? err.message : "Failed to delete database record."}`);
+                                  }
                                 }
                               }}
                               className="py-1.5 px-3 border border-border-base hover:bg-red-600/10 text-muted-text hover:text-red-500 font-bold text-[10px] rounded-lg transition-colors flex items-center justify-center space-x-1 cursor-pointer"

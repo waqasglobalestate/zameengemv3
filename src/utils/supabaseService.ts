@@ -413,6 +413,39 @@ export async function updateUserRegistrationStatus(email: string, status: string
 }
 
 /**
+ * Permanently deletes a user registration record from Supabase Cloud DB.
+ */
+export async function deleteSupabaseUserRegistration(idOrEmail: string): Promise<void> {
+  try {
+    if (!idOrEmail) return;
+    const isEmail = idOrEmail.includes("@");
+    let query = supabase.from("user_registrations").delete();
+    if (isEmail) {
+      query = query.eq("email", idOrEmail.toLowerCase());
+    } else {
+      const rawId = idOrEmail.replace(/^usr-db-/, "");
+      query = query.eq("id", rawId);
+    }
+
+    const { error } = await query;
+    if (error) {
+      console.error("=== SUPABASE USER REGISTRATION DELETE FAILED ===", {
+        code: error.code,
+        message: error.message,
+        details: error.details,
+        hint: error.hint
+      });
+      throw error;
+    } else {
+      console.log("=== SUPABASE USER REGISTRATION DELETE SUCCESS ===", idOrEmail);
+    }
+  } catch (err) {
+    console.error("Error deleting user_registrations row from Supabase:", err);
+    throw err;
+  }
+}
+
+/**
  * Increments the views count for a property in Supabase Cloud DB.
  */
 export async function incrementPropertyViews(propertyId: string): Promise<void> {
