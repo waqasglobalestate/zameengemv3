@@ -75,6 +75,16 @@ jobs:
           mkdir -p images public/images
           cp -r public/images/* images/ || true
 
+          # Verify generated HTML files have valid non-zero content before archiving
+          echo "=== VALIDATING LOCAL GENERATED HTML FILES ==="
+          for f in index.html dashboard.html properties.html agents.html blog.html contact.html calculators.html compare.html privacy.html terms.html; do
+            if [ ! -s "$f" ]; then
+              echo "CRITICAL ERROR: Build validation failed! $f is missing or 0 bytes!"
+              exit 1
+            fi
+            echo "VALIDATED: $f ($(wc -c < "$f") bytes)"
+          done
+
       - name: Zip Files for Transfer
         run: zip -r deploy.zip . -x "node_modules/*" ".git/*" ".github/*" ".next/cache/*" "deploy.zip"
 
@@ -111,6 +121,16 @@ jobs:
             find . -type d -exec chmod 755 {} + 2>/dev/null || true
             find . -type f -exec chmod 644 {} + 2>/dev/null || true
             chmod -R 755 _next .next public static images 2>/dev/null || true
-            touch index.html dashboard.html properties.html agents.html blog.html contact.html calculators.html compare.html privacy.html terms.html 2>/dev/null || true
+
+            # Verify extracted HTML files on Hostinger server
+            echo "=== VALIDATING HOSTINGER EXTRACTED HTML FILES ==="
+            for f in index.html dashboard.html properties.html agents.html blog.html contact.html calculators.html compare.html privacy.html terms.html; do
+              if [ ! -s "$f" ]; then
+                echo "CRITICAL ERROR on Hostinger: $f is missing or 0 bytes after unzip!"
+                exit 1
+              fi
+              echo "HOSTINGER VALIDATED: $f ($(wc -c < "$f") bytes)"
+            done
+
             mkdir -p tmp
             touch tmp/restart.txt || true
