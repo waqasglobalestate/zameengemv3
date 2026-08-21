@@ -757,12 +757,10 @@ export function AppStateProvider({ children }: { children: React.ReactNode }) {
     const role = userSession?.role || "Buyer";
     const plan = userSession?.plan || "Free";
     const limit = PLAN_LIMITS[plan] || 10;
-    const userName = (userSession?.name || "").toLowerCase();
-    
     const userListings = properties.filter((p) => {
-      const agentName = p?.agent?.name?.toLowerCase() || "";
-      const contactName = p?.contactDetails?.name?.toLowerCase() || "";
-      return (userName && agentName === userName) || (userName && contactName === userName);
+      if (role === "Admin") return true;
+      if (!userSession?.id || !p?.createdBy) return false;
+      return String(p.createdBy) === String(userSession.id);
     });
     const currentCount = userListings.length;
 
