@@ -206,31 +206,19 @@ export default function DashboardPortal() {
 
   // Filter listings added by current user context
   const myListings = properties.filter((p) => {
-    if (userSession.role === "Admin") return true;
-
-    // Priority 1: Strong ownership via Supabase Auth UUID
-    if (p.createdBy) {
-      return Boolean(
-        userSession.id && String(p.createdBy) === String(userSession.id)
-      );
+    if (userSession.role === "Admin") {
+      return true;
     }
 
-    // Priority 2: Legacy fallback via exact email only
-    if (p.createdByEmail && userSession.email) {
-      return (
-        p.createdByEmail.trim().toLowerCase() === userSession.email.trim().toLowerCase()
-      );
+    if (!userSession.id) {
+      return false;
     }
 
-    // Priority 3: Legacy fallback via exact normalized phone only
-    const userPhone = (userSession.phone || "").replace(/\D/g, "");
-    const propertyPhone = (p.contactDetails?.phone || p.agent?.phone || "").replace(/\D/g, "");
-
-    if (userPhone && propertyPhone && userPhone.length >= 10 && propertyPhone.length >= 10) {
-      return userPhone === propertyPhone;
+    if (!p.createdBy) {
+      return false;
     }
 
-    return false;
+    return String(p.createdBy) === String(userSession.id);
   });
 
   // Filter CRM leads assigned to or related to current agent
