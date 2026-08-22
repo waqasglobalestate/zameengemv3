@@ -313,19 +313,24 @@ export async function uploadPropertyMedia(file: Blob, path: string): Promise<str
  * Permanently deletes a property and its media from Supabase Cloud DB.
  */
 export async function deleteSupabaseProperty(propertyId: string): Promise<void> {
-  try {
-    if (!propertyId) return;
+  if (!propertyId) return;
 
-    // Delete associated media records first
-    await supabase.from("property_media").delete().eq("property_id", propertyId);
+  // Delete associated media records first
+  const { error: mediaErr } = await supabase.from("property_media").delete().eq("property_id", propertyId);
+  if (mediaErr) {
+    console.error("=== SUPABASE PROPERTY MEDIA DELETE FAILED ===", mediaErr);
+  }
 
-    // Delete property record
-    const { error } = await supabase.from("properties").delete().eq("id", propertyId);
-    if (error) {
-      console.warn("Supabase property delete notice:", error.message);
-    }
-  } catch (err) {
-    console.warn("Supabase property delete exception:", err);
+  // Delete property record
+  const { error } = await supabase.from("properties").delete().eq("id", propertyId);
+  if (error) {
+    console.error("=== SUPABASE PROPERTY DELETE FAILED ===", {
+      code: error.code,
+      message: error.message,
+      details: error.details,
+      hint: error.hint
+    });
+    throw error;
   }
 }
 

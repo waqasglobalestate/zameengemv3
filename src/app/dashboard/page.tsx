@@ -629,7 +629,16 @@ export default function DashboardPortal() {
                           <td className="p-3">{p.viewsCount}</td>
                           <td className="p-3 text-right">
                             <button
-                              onClick={() => deleteProperty(p.id)}
+                              onClick={async () => {
+                                if (confirm(`Are you sure you want to permanently delete property listing "${p.title}"?`)) {
+                                  try {
+                                    await deleteProperty(p.id);
+                                  } catch (err) {
+                                    const msg = err instanceof Error ? err.message : "Failed to delete property from database.";
+                                    alert(`Error deleting property: ${msg}`);
+                                  }
+                                }
+                              }}
                               className="text-red-500 hover:text-red-700 font-bold"
                               title="Delete listing"
                             >
@@ -1018,9 +1027,14 @@ export default function DashboardPortal() {
                                 </button>
 
                                 <button
-                                  onClick={() => {
+                                  onClick={async () => {
                                     if (confirm(`Are you sure you want to permanently delete property listing "${p.title}"?`)) {
-                                      deleteProperty(p.id);
+                                      try {
+                                        await deleteProperty(p.id);
+                                      } catch (err) {
+                                        const msg = err instanceof Error ? err.message : "Failed to delete property from database.";
+                                        alert(`Error deleting property: ${msg}`);
+                                      }
                                     }
                                   }}
                                   className="p-1.5 border border-border-base text-muted-text hover:text-red-600 hover:bg-red-600/10 rounded transition-colors"

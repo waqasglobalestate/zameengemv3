@@ -162,7 +162,7 @@ interface AppStateContextProps {
   rejectProperty: (id: string) => void;
   suspendProperty: (id: string, isSuspended?: boolean) => void;
   updateProperty: (property: Property) => void;
-  deleteProperty: (id: string) => void;
+  deleteProperty: (id: string) => Promise<void>;
   addInquiry: (inquiry: Omit<Inquiry, "id" | "status" | "createdAt">) => void;
   updateInquiryStatus: (id: string, status: Inquiry["status"]) => void;
   toggleSavedProperty: (id: string) => void;
@@ -625,7 +625,11 @@ export function AppStateProvider({ children }: { children: React.ReactNode }) {
           const storedUsersRaw = localStorage.getItem("gem-users");
           const currentUsers: UserRecord[] = storedUsersRaw ? JSON.parse(storedUsersRaw) : [];
           const userExists = currentUsers.some(u => u.email.toLowerCase() === session.user.email?.toLowerCase());
-          if (!userExists && session.user.email) {
+          const storedDeletedUsersRaw = localStorage.getItem("gem-deleted-users");
+          const deletedUsers: string[] = storedDeletedUsersRaw ? JSON.parse(storedDeletedUsersRaw) : [];
+          const isDeletedByAdmin = Boolean(session.user.email && deletedUsers.includes(session.user.email.toLowerCase()));
+
+          if (!userExists && session.user.email && !isDeletedByAdmin) {
             const newName = meta.full_name || session.user.email.split("@")[0] || "User";
             const newUser: UserRecord = {
               id: `usr-${Date.now()}`,
@@ -953,12 +957,22 @@ export function AppStateProvider({ children }: { children: React.ReactNode }) {
     saveState("gem-properties", updatedListings);
   };
 
-  const deleteProperty = (id: string) => {
-    const updatedListings = properties.filter((p) => p.id !== id);
-    setProperties(updatedListings);
-    saveState("gem-properties", updatedListings);
+  const deleteProperty = async (id: string): Promise<void> => {
+    // 1. Attempt Supabase permanent database deletion FIRST
+    try {
+      await deleteSupabaseProperty(id);
+    } catch (err) {
+      console.error("Failed to delete property from Supabase:", err);
+      throw err;
+    }
 
-    // Save to permanent deleted IDs list in localStorage
+    // 2. Only after successful database deletion, update local React state & localStorage
+    setProperties((prev) => {
+      const updatedListings = prev.filter((p) => p.id !== id);
+      saveState("gem-properties", updatedListings);
+      return updatedListings;
+    });
+
     try {
       const currentDeleted: string[] = JSON.parse(localStorage.getItem("gem-deleted-properties") || "[]");
       if (!currentDeleted.includes(id)) {
@@ -968,11 +982,6 @@ export function AppStateProvider({ children }: { children: React.ReactNode }) {
     } catch (err) {
       console.warn("Error updating deleted properties cache:", err);
     }
-
-    // Permanently delete from Supabase Cloud DB
-    deleteSupabaseProperty(id).catch((err) =>
-      console.error("Failed to delete property from Supabase:", err)
-    );
   };
 
   const addInquiry = (inq: Omit<Inquiry, "id" | "status" | "createdAt">) => {
@@ -1254,9 +1263,15 @@ export function AppStateProvider({ children }: { children: React.ReactNode }) {
       return updatedAgencies;
     });
 
-    if (userSession && userSession.email.toLowerCase() === targetUser.email.toLowerCase()) {
-      setUserSession(defaultSession);
-      saveState("gem-user-session", defaultSession);
+    // 3. Record deleted email in localStorage to prevent auto-rehydration
+    try {
+      const currentDeleted: string[] = JSON.parse(localStorage.getItem("gem-deleted-users") || "[]");
+      if (targetUser.email && !currentDeleted.includes(targetUser.email.toLowerCase())) {
+        const nextDeleted = [...currentDeleted, targetUser.email.toLowerCase()];
+        localStorage.setItem("gem-deleted-users", JSON.stringify(nextDeleted));
+      }
+    } catch (err) {
+      console.warn("Error updating gem-deleted-users cache:", err);
     }
   };
 

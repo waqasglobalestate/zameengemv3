@@ -588,9 +588,14 @@ export default function AdminAgencies() {
                             {/* Delete Property button */}
                             <button
                               type="button"
-                              onClick={() => {
+                              onClick={async () => {
                                 if (confirm(`Are you sure you want to permanently delete property listing "${prop.title}"?`)) {
-                                  deleteProperty(prop.id);
+                                  try {
+                                    await deleteProperty(prop.id);
+                                  } catch (err) {
+                                    const msg = err instanceof Error ? err.message : "Failed to delete property from database.";
+                                    alert(`Error deleting property: ${msg}`);
+                                  }
                                 }
                               }}
                               className="py-0.5 px-2 bg-red-600/10 hover:bg-red-600 hover:text-white text-red-600 font-extrabold text-[9px] rounded flex items-center space-x-1 cursor-pointer transition-colors border border-red-600/20"
