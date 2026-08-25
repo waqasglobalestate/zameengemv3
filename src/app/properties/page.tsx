@@ -502,7 +502,7 @@ function SearchPropertiesContent() {
                         <span className="text-[10px] font-bold bg-muted-bg text-foreground px-2 py-0.5 rounded border border-border-base">{prop.size}</span>
                       </div>
                       <h3 className="text-base font-bold text-foreground group-hover:text-gold transition-colors mb-2">
-                        <Link href={`/properties/${prop.id}`}>{prop.title}</Link>
+                        <Link href={`/properties?id=${prop.id}`}>{prop.title}</Link>
                       </h3>
                       <p className="text-xs text-muted-text line-clamp-2 leading-relaxed mb-4">{prop.description}</p>
                     </div>
@@ -525,7 +525,7 @@ function SearchPropertiesContent() {
                           <span>{comparingIds.includes(prop.id) ? "Comparing" : "Add Compare"}</span>
                         </button>
                         <Link 
-                          href={`/properties/${prop.id}`} 
+                          href={`/properties?id=${prop.id}`} 
                           className="px-4 py-1.5 bg-royal dark:bg-white text-white dark:text-royal font-bold text-xs rounded-lg hover:bg-slate-800 transition-colors"
                         >
                           View Details

@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, Suspense } from "react";
 import { useParams, useRouter, useSearchParams } from "next/navigation";
 import { useAppState } from "@/context/AppStateContext";
 import PropertyMap from "@/components/Property/PropertyMap";
@@ -21,7 +21,7 @@ import {
   Flame
 } from "lucide-react";
 
-export default function PropertyDetailPage() {
+function PropertyDetailContent() {
   const params = useParams();
   const searchParams = useSearchParams();
   const router = useRouter();
@@ -743,5 +743,13 @@ export default function PropertyDetailPage() {
       )}
 
     </div>
+  );
+}
+
+export default function PropertyDetailPage() {
+  return (
+    <Suspense fallback={<div className="max-w-7xl mx-auto px-4 py-20 text-center font-bold text-muted-text">Loading property details...</div>}>
+      <PropertyDetailContent />
+    </Suspense>
   );
 }

@@ -117,10 +117,8 @@ jobs:
 
             # Extract deployment bundle with a clean generated output surface.
             unzip -o deploy.zip
-            rm -f deploy.zip
-            find . -type d -exec chmod 755 {} + 2>/dev/null || true
-            find . -type f -exec chmod 644 {} + 2>/dev/null || true
-            chmod -R 755 _next .next public static images 2>/dev/null || true
+            chmod -R 755 _next .next public static images dashboard properties agents blog contact calculators compare privacy terms 2>/dev/null || true
+            chmod 644 index.html dashboard.html properties.html agents.html blog.html contact.html calculators.html compare.html privacy.html terms.html 2>/dev/null || true
 
             # Verify extracted HTML files on Hostinger server
             echo "=== VALIDATING HOSTINGER EXTRACTED HTML FILES ==="
