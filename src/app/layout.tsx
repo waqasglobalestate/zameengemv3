@@ -21,6 +21,19 @@ export const metadata: Metadata = {
   description: "Buy, Sell & Invest in DHA Bahawalpur, DHA Multan, DHA Lahore, DHA Islamabad, and Bahria Town Projects. Guided by CEO Waqas Ahmad Chaudhary.",
   keywords: ["DHA Bahawalpur", "DHA Multan", "DHA Lahore", "Zameen Gem", "Bahawalpur Real Estate", "Real Estate Pakistan", "Waqas Ahmad Chaudhary"],
   authors: [{ name: "Waqas Ahmad Chaudhary" }],
+  manifest: "/manifest.json",
+  icons: {
+    icon: [
+      { url: "/icon-192.png", sizes: "192x192", type: "image/png" },
+      { url: "/icon-512.png", sizes: "512x512", type: "image/png" }
+    ],
+    apple: "/apple-touch-icon.png"
+  },
+  appleWebApp: {
+    capable: true,
+    title: "Zameen Gem",
+    statusBarStyle: "black-translucent"
+  },
   openGraph: {
     type: "website",
     locale: "en_PK",
@@ -39,11 +52,32 @@ export default function RootLayout({
   return (
     <html lang="en" className={`h-full scroll-smooth ${outfit.variable} overflow-x-hidden max-w-full`} suppressHydrationWarning>
       <head>
+        <link rel="manifest" href="/manifest.json" />
+        <meta name="theme-color" content="#c5a85c" />
+        <meta name="mobile-web-app-capable" content="yes" />
+        <meta name="apple-mobile-web-app-capable" content="yes" />
+        <meta name="apple-mobile-web-app-title" content="Zameen Gem" />
+        <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
         <link rel="preconnect" href="https://lstitpmfaupnxzrbojpq.supabase.co" />
         <link rel="preconnect" href="https://images.unsplash.com" />
         <link rel="dns-prefetch" href="https://images.unsplash.com" />
       </head>
       <body className="font-sans min-h-full flex flex-col antialiased overflow-x-hidden max-w-full" suppressHydrationWarning>
+        <Script
+          id="register-sw"
+          strategy="afterInteractive"
+          dangerouslySetInnerHTML={{
+            __html: `
+              if ('serviceWorker' in navigator) {
+                window.addEventListener('load', function() {
+                  navigator.serviceWorker.register('/sw.js').catch(function(err) {
+                    console.log('ServiceWorker registration notice:', err);
+                  });
+                });
+              }
+            `,
+          }}
+        />
         {process.env.NODE_ENV === "development" && (
           <Script
             id="suppress-hydration-errors"

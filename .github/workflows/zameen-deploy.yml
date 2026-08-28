@@ -71,9 +71,13 @@ jobs:
           cp .next/server/app/terms.html terms.html || true
           cp .next/server/app/terms.html terms/index.html || true
 
-          # Ensure image assets exist at root /images/ and /public/images/
+          # Ensure image and PWA assets exist at root / and /public/
           mkdir -p images public/images
           cp -r public/images/* images/ || true
+          cp public/manifest.json manifest.json || true
+          cp public/sw.js sw.js || true
+          cp public/icon-*.png . || true
+          cp public/apple-touch-icon.png apple-touch-icon.png || true
 
           # Verify generated HTML files have valid non-zero content before archiving
           echo "=== VALIDATING LOCAL GENERATED HTML FILES ==="
