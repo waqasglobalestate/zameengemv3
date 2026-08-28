@@ -4,7 +4,7 @@ import React, { useState, useEffect } from "react";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { useAppState } from "@/context/AppStateContext";
-import { Menu, X, Sun, Moon, User, Layers, LogOut, Search } from "lucide-react";
+import { Menu, X, Sun, Moon, User, Layers, LogOut, Search, Download } from "lucide-react";
 
 export default function Header() {
   const { theme, setTheme, userSession, setIsAuthModalOpen, logoutUser, setAuthModalDefaultTab } = useAppState();
@@ -25,6 +25,51 @@ export default function Header() {
   const handleAddPropertyClick = (e: React.MouseEvent) => {
     e.preventDefault();
     setIsAuthModalOpen(true);
+  };
+
+  // PWA beforeinstallprompt handler state
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const [deferredPrompt, setDeferredPrompt] = useState<any>(null);
+  const [isInstalled, setIsInstalled] = useState(false);
+
+  useEffect(() => {
+    if (typeof window !== "undefined") {
+      if (window.matchMedia("(display-mode: standalone)").matches || (navigator as unknown as { standalone?: boolean }).standalone) {
+        setIsInstalled(true);
+      }
+
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const handleBeforeInstallPrompt = (e: any) => {
+        e.preventDefault();
+        setDeferredPrompt(e);
+      };
+
+      const handleAppInstalled = () => {
+        setIsInstalled(true);
+        setDeferredPrompt(null);
+      };
+
+      window.addEventListener("beforeinstallprompt", handleBeforeInstallPrompt);
+      window.addEventListener("appinstalled", handleAppInstalled);
+
+      return () => {
+        window.removeEventListener("beforeinstallprompt", handleBeforeInstallPrompt);
+        window.removeEventListener("appinstalled", handleAppInstalled);
+      };
+    }
+  }, []);
+
+  const handleInstallClick = async () => {
+    if (deferredPrompt) {
+      deferredPrompt.prompt();
+      const { outcome } = await deferredPrompt.userChoice;
+      if (outcome === "accepted") {
+        setIsInstalled(true);
+      }
+      setDeferredPrompt(null);
+    } else {
+      alert("To install Zameen Gem on Android, tap Chrome's menu (⋮) and select 'Add to Home screen' or 'Install app'.");
+    }
   };
 
   // Close menus on route change
@@ -148,6 +193,18 @@ export default function Header() {
               + Add Property
             </button>
 
+            {/* PWA Install Button (Desktop Header) */}
+            {!isInstalled && (
+              <button
+                onClick={handleInstallClick}
+                className="inline-flex items-center justify-center px-2.5 py-1.5 xl:px-4 xl:py-2 text-xs xl:text-sm font-bold bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg transition-all duration-200 shadow-md cursor-pointer whitespace-nowrap gap-1.5"
+                title="Install Zameen Gem App on Android/Chrome"
+              >
+                <Download className="w-3.5 h-3.5" />
+                <span>Install</span>
+              </button>
+            )}
+
             {/* Dynamic Auth Header Section */}
             {userSession.role === "Buyer" ? (
               <button
@@ -214,6 +271,18 @@ export default function Header() {
 
           {/* Mobile Prominent Menu & Actions Bar */}
           <div className="flex lg:hidden items-center space-x-1.5 sm:space-x-2">
+            {/* Prominent Mobile Install Button */}
+            {!isInstalled && (
+              <button
+                onClick={handleInstallClick}
+                className="px-2.5 py-1.5 text-xs font-black bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg shadow-sm flex items-center gap-1 cursor-pointer transition-all active:scale-95 whitespace-nowrap"
+                title="Install Zameen Gem App"
+              >
+                <Download className="w-3.5 h-3.5" />
+                <span>Install</span>
+              </button>
+            )}
+
             {/* Prominent Mobile Search Icon Button */}
             <button
               onClick={() => setIsOpen(!isOpen)}
@@ -280,6 +349,18 @@ export default function Header() {
             </button>
           </form>
           <div className="flex flex-col space-y-2">
+            {!isInstalled && (
+              <button
+                onClick={(e) => {
+                  setIsOpen(false);
+                  handleInstallClick();
+                }}
+                className="px-3 py-2.5 text-sm font-black rounded-lg bg-emerald-600 text-white hover:bg-emerald-700 text-center flex items-center justify-center gap-2 cursor-pointer shadow-md"
+              >
+                <Download className="w-4 h-4" />
+                <span>Install Zameen Gem App</span>
+              </button>
+            )}
             {navLinks.map((link) => {
               const isActive = pathname ? (pathname === link.href || (link.href !== "/" && pathname.startsWith(link.href))) : false;
               return (
