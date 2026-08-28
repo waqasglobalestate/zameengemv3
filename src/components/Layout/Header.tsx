@@ -103,8 +103,8 @@ export default function Header() {
      <header className="sticky top-0 z-50 w-full border-b border-border-base bg-background/80 backdrop-blur-md transition-all">
       <div className="max-w-7xl mx-auto px-2 sm:px-4 lg:px-6">
         <div className="flex h-20 items-center justify-between gap-2 lg:gap-3">
-          {/* Logo Section */}
-          <div className="flex-shrink-0">
+          {/* Logo & Install Section (LEFT SIDE) */}
+          <div className="flex items-center gap-2 sm:gap-3 flex-shrink-0">
             <Link href="/" className="flex items-center gap-2 sm:gap-3 group">
               {/* Logo Icon */}
               <div 
@@ -128,6 +128,18 @@ export default function Header() {
                 </span>
               </div>
             </Link>
+
+            {/* PWA Install Button (Immediately beside logo on LEFT) */}
+            {!isInstalled && (
+              <button
+                onClick={handleInstallClick}
+                className="inline-flex items-center justify-center px-2 py-1 sm:px-2.5 sm:py-1.5 text-xs font-bold bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg transition-all duration-200 shadow-md cursor-pointer whitespace-nowrap gap-1 sm:gap-1.5 ml-1"
+                title="Install Zameen Gem App on Android/Chrome"
+              >
+                <Download className="w-3.5 h-3.5" />
+                <span>Install</span>
+              </button>
+            )}
           </div>
 
           {/* Desktop Navigation Links */}
@@ -192,18 +204,6 @@ export default function Header() {
             >
               + Add Property
             </button>
-
-            {/* PWA Install Button (Desktop Header) */}
-            {!isInstalled && (
-              <button
-                onClick={handleInstallClick}
-                className="inline-flex items-center justify-center px-2.5 py-1.5 xl:px-4 xl:py-2 text-xs xl:text-sm font-bold bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg transition-all duration-200 shadow-md cursor-pointer whitespace-nowrap gap-1.5"
-                title="Install Zameen Gem App on Android/Chrome"
-              >
-                <Download className="w-3.5 h-3.5" />
-                <span>Install</span>
-              </button>
-            )}
 
             {/* Dynamic Auth Header Section */}
             {userSession.role === "Buyer" ? (
