@@ -271,18 +271,6 @@ export default function Header() {
 
           {/* Mobile Prominent Menu & Actions Bar */}
           <div className="flex lg:hidden items-center space-x-1.5 sm:space-x-2">
-            {/* Prominent Mobile Install Button */}
-            {!isInstalled && (
-              <button
-                onClick={handleInstallClick}
-                className="px-2.5 py-1.5 text-xs font-black bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg shadow-sm flex items-center gap-1 cursor-pointer transition-all active:scale-95 whitespace-nowrap"
-                title="Install Zameen Gem App"
-              >
-                <Download className="w-3.5 h-3.5" />
-                <span>Install</span>
-              </button>
-            )}
-
             {/* Prominent Mobile Search Icon Button */}
             <button
               onClick={() => setIsOpen(!isOpen)}

@@ -23,7 +23,8 @@ import {
   ChevronUp,
   Home,
   Flame,
-  Zap
+  Zap,
+  SlidersHorizontal
 } from "lucide-react";
 
 const pakistanCities = [
@@ -60,6 +61,7 @@ export default function HomePage() {
   const [size, setSize] = useState("");
   const [priceMax, setPriceMax] = useState("");
   const [showAdvanced, setShowAdvanced] = useState(false);
+  const [isMobileSearchExpanded, setIsMobileSearchExpanded] = useState(false);
 
   // Advanced filter states
   const [sector, setSector] = useState("");
@@ -193,8 +195,75 @@ export default function HomePage() {
         {/* TOP: SEARCH WIDGET (Ultra-transparent crystal glass & compact layout) */}
         <div className="relative z-30 max-w-5xl mx-auto w-full px-3 pt-2 sm:pt-3 md:pt-4">
           <div className="bg-[#0f172a]/20 dark:bg-black/25 border border-white/20 hover:border-gold/40 rounded-2xl shadow-2xl p-2.5 sm:p-3 backdrop-blur-md transition-all duration-300">
-            <form onSubmit={handleSearch} className="space-y-2">
+            
+            {/* MOBILE ONLY: COMPACT SEARCH BAR (Collapsed State) */}
+            <div className={`md:hidden ${isMobileSearchExpanded ? "hidden" : "block"}`}>
+              {/* Mobile Purpose Switch Tabs */}
+              <div className="flex space-x-1 border-b border-white/15 pb-1.5 mb-2">
+                {(["Buy", "Rent", "Project"] as const).map((tab) => (
+                  <button
+                    key={tab}
+                    type="button"
+                    onClick={() => setPurpose(tab)}
+                    className={`px-2.5 py-0.5 text-xs font-bold rounded-md transition-all cursor-pointer ${
+                      purpose === tab
+                        ? "bg-gold text-slate-950 shadow font-extrabold"
+                        : "text-slate-200 hover:bg-white/10 hover:text-white"
+                    }`}
+                  >
+                    {tab === "Project" ? "Featured Projects" : tab === "Buy" ? "For Sale" : "For Rent"}
+                  </button>
+                ))}
+              </div>
+
+              {/* Compact Tap-to-Search Pill */}
+              <button
+                type="button"
+                onClick={() => setIsMobileSearchExpanded(true)}
+                className="w-full flex items-center justify-between gap-2 px-3 py-2 bg-slate-950/60 hover:bg-slate-950/80 border border-gold/40 rounded-xl text-left transition-all active:scale-[0.99] cursor-pointer shadow-lg"
+              >
+                <div className="flex items-center gap-2 min-w-0">
+                  <Search className="w-4 h-4 text-gold shrink-0" />
+                  <div className="flex flex-col min-w-0">
+                    <span className="text-xs font-bold text-white truncate">
+                      {society || city || "Search DHA Bahawalpur & Cities..."}
+                    </span>
+                    <span className="text-[10px] text-slate-300 truncate">
+                      {[type, size, priceMax ? (parseInt(priceMax) >= 10000000 ? `Under ${(parseInt(priceMax)/10000000).toFixed(1)} Cr` : `Under ${(parseInt(priceMax)/100000).toFixed(0)} Lakhs`) : ""].filter(Boolean).join(" • ") || "Tap to customize filters & budget"}
+                    </span>
+                  </div>
+                </div>
+                <div className="flex items-center gap-1.5 shrink-0">
+                  <span className="px-2.5 py-1 bg-gold text-slate-950 text-[10px] font-black rounded-lg uppercase tracking-wider flex items-center gap-1 shadow-sm">
+                    <SlidersHorizontal className="w-2.5 h-2.5" />
+                    <span>Filters</span>
+                  </span>
+                </div>
+              </button>
+            </div>
+
+            {/* FULL SEARCH FORM (Always visible on desktop md:block, expandable on mobile) */}
+            <form 
+              onSubmit={handleSearch} 
+              className={`space-y-2 ${isMobileSearchExpanded ? "block animate-in fade-in duration-300" : "hidden md:block"}`}
+            >
               
+              {/* Mobile-Only Header with Collapse Button */}
+              <div className="md:hidden flex items-center justify-between pb-1.5 border-b border-white/15">
+                <span className="text-xs font-extrabold text-gold uppercase tracking-wider flex items-center gap-1.5">
+                  <SlidersHorizontal className="w-3.5 h-3.5" />
+                  <span>Search & Filter Properties</span>
+                </span>
+                <button
+                  type="button"
+                  onClick={() => setIsMobileSearchExpanded(false)}
+                  className="text-[11px] font-bold text-slate-200 hover:text-white flex items-center gap-1 bg-white/10 hover:bg-white/20 px-2.5 py-1 rounded-md transition-colors cursor-pointer"
+                >
+                  <span>Close</span>
+                  <ChevronUp className="w-3.5 h-3.5" />
+                </button>
+              </div>
+
               {/* Purpose Switch Tabs */}
               <div className="flex space-x-1 border-b border-white/15 pb-1.5">
                 {(["Buy", "Rent", "Project"] as const).map((tab) => (
@@ -213,176 +282,179 @@ export default function HomePage() {
                 ))}
               </div>
 
-              {/* Core Search Fields Grid */}
-              <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-2">
-                
-                {/* City Selection */}
-                <div>
-                  <label className="block text-[9px] font-extrabold uppercase text-gold tracking-wider mb-0.5 flex items-center space-x-1">
-                    <MapPin className="w-2.5 h-2.5 text-gold" />
-                    <span>City</span>
-                  </label>
-                  <select
-                    value={city}
-                    onChange={(e) => setCity(e.target.value)}
-                    className="w-full text-xs font-semibold rounded-md border border-white/20 px-2 py-1 bg-slate-950/40 text-white outline-none focus:border-gold focus:bg-slate-950/70 transition-all"
-                  >
-                    <option value="" className="bg-slate-900 text-white">All Cities</option>
-                    {pakistanCities.map((c) => (
-                      <option key={c} value={c} className="bg-slate-900 text-white">{c}</option>
-                    ))}
-                  </select>
-                </div>
-
-                {/* Society / Project */}
-                <div>
-                  <label className="block text-[9px] font-extrabold uppercase text-gold tracking-wider mb-0.5 flex items-center space-x-1">
-                    <Home className="w-2.5 h-2.5 text-gold" />
-                    <span>Society / Project</span>
-                  </label>
-                  <select
-                    value={society}
-                    onChange={(e) => setSociety(e.target.value)}
-                    className="w-full text-xs font-semibold rounded-md border border-white/20 px-2 py-1 bg-slate-950/40 text-white outline-none focus:border-gold focus:bg-slate-950/70 transition-all"
-                  >
-                    <option value="" className="bg-slate-900 text-white">All Societies</option>
-                    <option value="DHA Bahawalpur" className="bg-slate-900 text-white">DHA Bahawalpur</option>
-                    <option value="DHA Multan" className="bg-slate-900 text-white">DHA Multan</option>
-                    <option value="DHA Lahore" className="bg-slate-900 text-white">DHA Lahore</option>
-                    <option value="DHA Islamabad" className="bg-slate-900 text-white">DHA Islamabad</option>
-                    <option value="Bahria Town Projects" className="bg-slate-900 text-white">Bahria Town Projects</option>
-                  </select>
-                </div>
-
-                {/* Property Type */}
-                <div>
-                  <label className="block text-[9px] font-extrabold uppercase text-gold tracking-wider mb-0.5 flex items-center space-x-1">
-                    <Building2 className="w-2.5 h-2.5 text-gold" />
-                    <span>Property Type</span>
-                  </label>
-                  <select
-                    value={type}
-                    onChange={(e) => setType(e.target.value)}
-                    className="w-full text-xs font-semibold rounded-md border border-white/20 px-2 py-1 bg-slate-950/40 text-white outline-none focus:border-gold focus:bg-slate-950/70 transition-all"
-                  >
-                    <option value="" className="bg-slate-900 text-white">All Types</option>
-                    <option value="Residential Plot" className="bg-slate-900 text-white">Residential Plot</option>
-                    <option value="Commercial Plot" className="bg-slate-900 text-white">Commercial Plot</option>
-                    <option value="Villa" className="bg-slate-900 text-white">Villa</option>
-                    <option value="House" className="bg-slate-900 text-white">House</option>
-                  </select>
-                </div>
-
-                {/* Plot Size */}
-                <div>
-                  <label className="block text-[9px] font-extrabold uppercase text-gold tracking-wider mb-0.5 flex items-center space-x-1">
-                    <Ruler className="w-2.5 h-2.5 text-gold" />
-                    <span>Plot Size</span>
-                  </label>
-                  <select
-                    value={size}
-                    onChange={(e) => setSize(e.target.value)}
-                    className="w-full text-xs font-semibold rounded-md border border-white/20 px-2 py-1 bg-slate-950/40 text-white outline-none focus:border-gold focus:bg-slate-950/70 transition-all"
-                  >
-                    <option value="" className="bg-slate-900 text-white">Any Size</option>
-                    <option value="5 Marla" className="bg-slate-900 text-white">5 Marla</option>
-                    <option value="10 Marla" className="bg-slate-900 text-white">10 Marla</option>
-                    <option value="1 Kanal" className="bg-slate-900 text-white">1 Kanal</option>
-                    <option value="2 Kanal" className="bg-slate-900 text-white">2 Kanal</option>
-                  </select>
-                </div>
-
-                {/* Price Cap */}
-                <div>
-                  <label className="block text-[9px] font-extrabold uppercase text-gold tracking-wider mb-0.5 flex items-center space-x-1">
-                    <DollarSign className="w-2.5 h-2.5 text-gold" />
-                    <span>Max Budget (PKR)</span>
-                  </label>
-                  <select
-                    value={priceMax}
-                    onChange={(e) => setPriceMax(e.target.value)}
-                    className="w-full text-xs font-semibold rounded-md border border-white/20 px-2 py-1 bg-slate-950/40 text-white outline-none focus:border-gold focus:bg-slate-950/70 transition-all"
-                  >
-                    <option value="" className="bg-slate-900 text-white">No Limit</option>
-                    <option value="5000000" className="bg-slate-900 text-white">Under 50 Lakhs</option>
-                    <option value="10000000" className="bg-slate-900 text-white">Under 1 Crore</option>
-                    <option value="20000000" className="bg-slate-900 text-white">Under 2 Crore</option>
-                    <option value="40000000" className="bg-slate-900 text-white">Under 4 Crore</option>
-                  </select>
-                </div>
-
-              </div>
-
-              {/* Advanced Filters Expandable section */}
-              {showAdvanced && (
-                <div className="grid grid-cols-2 md:grid-cols-4 gap-2 pt-2 border-t border-white/15 animate-in fade-in duration-300">
-                  {/* Sector */}
+              {/* Scrollable Container for Filters on Mobile */}
+              <div className="max-h-[60vh] md:max-h-none overflow-y-auto md:overflow-visible pr-0.5 space-y-2">
+                {/* Core Search Fields Grid */}
+                <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-2">
+                  
+                  {/* City Selection */}
                   <div>
-                    <label className="block text-[9px] font-extrabold uppercase text-gold mb-0.5">Sector Block</label>
-                    <input
-                      type="text"
-                      placeholder="e.g. Sector A"
-                      value={sector}
-                      onChange={(e) => setSector(e.target.value)}
-                      className="w-full text-xs font-semibold rounded-md border border-white/20 px-2 py-1 bg-slate-950/40 text-white placeholder-slate-400 outline-none focus:border-gold"
-                    />
-                  </div>
-
-                  {/* Possession */}
-                  <div>
-                    <label className="block text-[9px] font-extrabold uppercase text-gold mb-0.5">Possession Status</label>
+                    <label className="block text-[9px] font-extrabold uppercase text-gold tracking-wider mb-0.5 flex items-center space-x-1">
+                      <MapPin className="w-2.5 h-2.5 text-gold" />
+                      <span>City</span>
+                    </label>
                     <select
-                      value={possession}
-                      onChange={(e) => setPossession(e.target.value)}
-                      className="w-full text-xs font-semibold rounded-md border border-white/20 px-2 py-1 bg-slate-950/40 text-white outline-none focus:border-gold"
+                      value={city}
+                      onChange={(e) => setCity(e.target.value)}
+                      className="w-full text-xs font-semibold rounded-md border border-white/20 px-2 py-1 bg-slate-950/40 text-white outline-none focus:border-gold focus:bg-slate-950/70 transition-all"
                     >
-                      <option value="" className="bg-slate-900 text-white">Any Status</option>
-                      <option value="Possession" className="bg-slate-900 text-white">Possession Ready</option>
-                      <option value="Non-Possession" className="bg-slate-900 text-white">Non-Possession</option>
+                      <option value="" className="bg-slate-900 text-white">All Cities</option>
+                      {pakistanCities.map((c) => (
+                        <option key={c} value={c} className="bg-slate-900 text-white">{c}</option>
+                      ))}
                     </select>
                   </div>
 
-                  {/* Corner, Park, Main Boulevard check row */}
-                  <div className="col-span-2 flex flex-wrap gap-2.5 items-center pt-3 text-slate-200">
-                    <label className="flex items-center space-x-1 text-xs font-semibold cursor-pointer hover:text-white">
-                      <input 
-                        type="checkbox" 
-                        checked={corner} 
-                        onChange={(e) => setCorner(e.target.checked)}
-                        className="rounded accent-gold text-white" 
-                      />
-                      <span>Corner Plot</span>
+                  {/* Society / Project */}
+                  <div>
+                    <label className="block text-[9px] font-extrabold uppercase text-gold tracking-wider mb-0.5 flex items-center space-x-1">
+                      <Home className="w-2.5 h-2.5 text-gold" />
+                      <span>Society / Project</span>
                     </label>
-                    <label className="flex items-center space-x-1 text-xs font-semibold cursor-pointer hover:text-white">
-                      <input 
-                        type="checkbox" 
-                        checked={parkFacing} 
-                        onChange={(e) => setParkFacing(e.target.checked)}
-                        className="rounded accent-gold text-white" 
-                      />
-                      <span>Park Facing</span>
-                    </label>
-                    <label className="flex items-center space-x-1 text-xs font-semibold cursor-pointer hover:text-white">
-                      <input 
-                        type="checkbox" 
-                        checked={mainBoulevard} 
-                        onChange={(e) => setMainBoulevard(e.target.checked)}
-                        className="rounded accent-gold text-white" 
-                      />
-                      <span>Main Boulevard</span>
-                    </label>
-                    <label className="flex items-center space-x-1 text-xs font-semibold cursor-pointer hover:text-white">
-                      <input 
-                        type="checkbox" 
-                        checked={installment} 
-                        onChange={(e) => setInstallment(e.target.checked)}
-                        className="rounded accent-gold text-white" 
-                      />
-                      <span>Installment Plan</span>
-                    </label>
+                    <select
+                      value={society}
+                      onChange={(e) => setSociety(e.target.value)}
+                      className="w-full text-xs font-semibold rounded-md border border-white/20 px-2 py-1 bg-slate-950/40 text-white outline-none focus:border-gold focus:bg-slate-950/70 transition-all"
+                    >
+                      <option value="" className="bg-slate-900 text-white">All Societies</option>
+                      <option value="DHA Bahawalpur" className="bg-slate-900 text-white">DHA Bahawalpur</option>
+                      <option value="DHA Multan" className="bg-slate-900 text-white">DHA Multan</option>
+                      <option value="DHA Lahore" className="bg-slate-900 text-white">DHA Lahore</option>
+                      <option value="DHA Islamabad" className="bg-slate-900 text-white">DHA Islamabad</option>
+                      <option value="Bahria Town Projects" className="bg-slate-900 text-white">Bahria Town Projects</option>
+                    </select>
                   </div>
+
+                  {/* Property Type */}
+                  <div>
+                    <label className="block text-[9px] font-extrabold uppercase text-gold tracking-wider mb-0.5 flex items-center space-x-1">
+                      <Building2 className="w-2.5 h-2.5 text-gold" />
+                      <span>Property Type</span>
+                    </label>
+                    <select
+                      value={type}
+                      onChange={(e) => setType(e.target.value)}
+                      className="w-full text-xs font-semibold rounded-md border border-white/20 px-2 py-1 bg-slate-950/40 text-white outline-none focus:border-gold focus:bg-slate-950/70 transition-all"
+                    >
+                      <option value="" className="bg-slate-900 text-white">All Types</option>
+                      <option value="Residential Plot" className="bg-slate-900 text-white">Residential Plot</option>
+                      <option value="Commercial Plot" className="bg-slate-900 text-white">Commercial Plot</option>
+                      <option value="Villa" className="bg-slate-900 text-white">Villa</option>
+                      <option value="House" className="bg-slate-900 text-white">House</option>
+                    </select>
+                  </div>
+
+                  {/* Plot Size */}
+                  <div>
+                    <label className="block text-[9px] font-extrabold uppercase text-gold tracking-wider mb-0.5 flex items-center space-x-1">
+                      <Ruler className="w-2.5 h-2.5 text-gold" />
+                      <span>Plot Size</span>
+                    </label>
+                    <select
+                      value={size}
+                      onChange={(e) => setSize(e.target.value)}
+                      className="w-full text-xs font-semibold rounded-md border border-white/20 px-2 py-1 bg-slate-950/40 text-white outline-none focus:border-gold focus:bg-slate-950/70 transition-all"
+                    >
+                      <option value="" className="bg-slate-900 text-white">Any Size</option>
+                      <option value="5 Marla" className="bg-slate-900 text-white">5 Marla</option>
+                      <option value="10 Marla" className="bg-slate-900 text-white">10 Marla</option>
+                      <option value="1 Kanal" className="bg-slate-900 text-white">1 Kanal</option>
+                      <option value="2 Kanal" className="bg-slate-900 text-white">2 Kanal</option>
+                    </select>
+                  </div>
+
+                  {/* Price Cap */}
+                  <div>
+                    <label className="block text-[9px] font-extrabold uppercase text-gold tracking-wider mb-0.5 flex items-center space-x-1">
+                      <DollarSign className="w-2.5 h-2.5 text-gold" />
+                      <span>Max Budget (PKR)</span>
+                    </label>
+                    <select
+                      value={priceMax}
+                      onChange={(e) => setPriceMax(e.target.value)}
+                      className="w-full text-xs font-semibold rounded-md border border-white/20 px-2 py-1 bg-slate-950/40 text-white outline-none focus:border-gold focus:bg-slate-950/70 transition-all"
+                    >
+                      <option value="" className="bg-slate-900 text-white">No Limit</option>
+                      <option value="5000000" className="bg-slate-900 text-white">Under 50 Lakhs</option>
+                      <option value="10000000" className="bg-slate-900 text-white">Under 1 Crore</option>
+                      <option value="20000000" className="bg-slate-900 text-white">Under 2 Crore</option>
+                      <option value="40000000" className="bg-slate-900 text-white">Under 4 Crore</option>
+                    </select>
+                  </div>
+
                 </div>
-              )}
+
+                {/* Advanced Filters Expandable section */}
+                {showAdvanced && (
+                  <div className="grid grid-cols-2 md:grid-cols-4 gap-2 pt-2 border-t border-white/15 animate-in fade-in duration-300">
+                    {/* Sector */}
+                    <div>
+                      <label className="block text-[9px] font-extrabold uppercase text-gold mb-0.5">Sector Block</label>
+                      <input
+                        type="text"
+                        placeholder="e.g. Sector A"
+                        value={sector}
+                        onChange={(e) => setSector(e.target.value)}
+                        className="w-full text-xs font-semibold rounded-md border border-white/20 px-2 py-1 bg-slate-950/40 text-white placeholder-slate-400 outline-none focus:border-gold"
+                      />
+                    </div>
+
+                    {/* Possession */}
+                    <div>
+                      <label className="block text-[9px] font-extrabold uppercase text-gold mb-0.5">Possession Status</label>
+                      <select
+                        value={possession}
+                        onChange={(e) => setPossession(e.target.value)}
+                        className="w-full text-xs font-semibold rounded-md border border-white/20 px-2 py-1 bg-slate-950/40 text-white outline-none focus:border-gold"
+                      >
+                        <option value="" className="bg-slate-900 text-white">Any Status</option>
+                        <option value="Possession" className="bg-slate-900 text-white">Possession Ready</option>
+                        <option value="Non-Possession" className="bg-slate-900 text-white">Non-Possession</option>
+                      </select>
+                    </div>
+
+                    {/* Corner, Park, Main Boulevard check row */}
+                    <div className="col-span-2 flex flex-wrap gap-2.5 items-center pt-3 text-slate-200">
+                      <label className="flex items-center space-x-1 text-xs font-semibold cursor-pointer hover:text-white">
+                        <input 
+                          type="checkbox" 
+                          checked={corner} 
+                          onChange={(e) => setCorner(e.target.checked)}
+                          className="rounded accent-gold text-white" 
+                        />
+                        <span>Corner Plot</span>
+                      </label>
+                      <label className="flex items-center space-x-1 text-xs font-semibold cursor-pointer hover:text-white">
+                        <input 
+                          type="checkbox" 
+                          checked={parkFacing} 
+                          onChange={(e) => setParkFacing(e.target.checked)}
+                          className="rounded accent-gold text-white" 
+                        />
+                        <span>Park Facing</span>
+                      </label>
+                      <label className="flex items-center space-x-1 text-xs font-semibold cursor-pointer hover:text-white">
+                        <input 
+                          type="checkbox" 
+                          checked={mainBoulevard} 
+                          onChange={(e) => setMainBoulevard(e.target.checked)}
+                          className="rounded accent-gold text-white" 
+                        />
+                        <span>Main Boulevard</span>
+                      </label>
+                      <label className="flex items-center space-x-1 text-xs font-semibold cursor-pointer hover:text-white">
+                        <input 
+                          type="checkbox" 
+                          checked={installment} 
+                          onChange={(e) => setInstallment(e.target.checked)}
+                          className="rounded accent-gold text-white" 
+                        />
+                        <span>Installment Plan</span>
+                      </label>
+                    </div>
+                  </div>
+                )}
+              </div>
 
               {/* Actions Bar */}
               <div className="flex items-center justify-between pt-1 border-t border-white/15">
@@ -398,13 +470,22 @@ export default function HomePage() {
                   )}
                 </button>
 
-                <button
-                  type="submit"
-                  className="px-4 py-1.5 bg-[#c5a85c] hover:bg-[#b09248] text-slate-950 font-extrabold text-xs rounded-lg transition-all flex items-center space-x-1.5 shadow cursor-pointer"
-                >
-                  <Search className="w-3.5 h-3.5" />
-                  <span>Search Properties</span>
-                </button>
+                <div className="flex items-center space-x-2">
+                  <button
+                    type="button"
+                    onClick={() => setIsMobileSearchExpanded(false)}
+                    className="md:hidden px-3 py-1.5 bg-white/10 hover:bg-white/20 text-slate-200 font-bold text-xs rounded-lg transition-all cursor-pointer"
+                  >
+                    Close
+                  </button>
+                  <button
+                    type="submit"
+                    className="px-4 py-1.5 bg-[#c5a85c] hover:bg-[#b09248] text-slate-950 font-extrabold text-xs rounded-lg transition-all flex items-center space-x-1.5 shadow cursor-pointer"
+                  >
+                    <Search className="w-3.5 h-3.5" />
+                    <span>Search Properties</span>
+                  </button>
+                </div>
               </div>
 
             </form>
